@@ -80,7 +80,16 @@ class Customers extends Table {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 }
 
-@DriftDatabase(tables: [Products, Sales, SaleItems, Debts, Branches, Customers])
+class Promotions extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+  TextColumn get discount => text()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get expiresAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+@DriftDatabase(tables: [Products, Sales, SaleItems, Debts, Branches, Customers, Promotions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -88,7 +97,19 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(promotions);
+          }
+        },
+      );
 
   Future<void> ensureSeeded() async {
     final productCount = await select(products).get();

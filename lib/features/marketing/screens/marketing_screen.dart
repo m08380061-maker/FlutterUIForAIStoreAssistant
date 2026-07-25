@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/models/promotion_model.dart';
+import '../../../shared/repositories/promotion_repository.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_overlay.dart';
@@ -59,7 +63,23 @@ class _PromotionsTab extends StatefulWidget {
 }
 
 class _PromotionsTabState extends State<_PromotionsTab> {
-  final List<_Promotion> _promotions = List.from(_demoPromotions);
+  final _repo = PromotionRepository();
+  List<PromotionModel> _promotions = [];
+  StreamSubscription<List<PromotionModel>>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = _repo.watchPromotions().listen((list) {
+      if (mounted) setState(() => _promotions = list);
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 
   void _showCreatePromotion() {
     final titleCtrl = TextEditingController();
@@ -81,18 +101,17 @@ class _PromotionsTabState extends State<_PromotionsTab> {
             TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount %', hintText: '10')),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (titleCtrl.text.trim().isNotEmpty) {
-                  setState(() {
-                    _promotions.insert(0, _Promotion(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: titleCtrl.text.trim(),
-                      discount: '${discountCtrl.text.trim()}%',
-                      isActive: true,
-                      expiresAt: DateTime.now().add(const Duration(days: 7)),
-                    ));
-                  });
-                  Navigator.pop(ctx);
+                  final discount = discountCtrl.text.trim().isEmpty
+                      ? '0%'
+                      : '${discountCtrl.text.trim()}%';
+                  await _repo.createPromotion(
+                    title: titleCtrl.text.trim(),
+                    discount: discount,
+                    expiresAt: DateTime.now().add(const Duration(days: 7)),
+                  );
+                  if (ctx.mounted) Navigator.pop(ctx);
                 }
               },
               style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
@@ -102,6 +121,10 @@ class _PromotionsTabState extends State<_PromotionsTab> {
         ),
       ),
     );
+  }
+
+  Future<void> _deletePromotion(String id) async {
+    await _repo.deletePromotion(id);
   }
 
   @override
@@ -117,10 +140,27 @@ class _PromotionsTabState extends State<_PromotionsTab> {
               padding: const EdgeInsets.all(AppConstants.paddingMD),
               itemCount: _promotions.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (ctx, i) => _PromotionCard(
-                promo: _promotions[i],
-                onToggle: () => setState(() => _promotions[i] = _promotions[i].toggle()),
-              ),
+              itemBuilder: (ctx, i) {
+                final promo = _promotions[i];
+                return Dismissible(
+                  key: ValueKey(promo.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.error,
+                      borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                  ),
+                  onDismissed: (_) => _deletePromotion(promo.id),
+                  child: _PromotionCard(
+                    promo: promo,
+                    onToggle: () => _repo.togglePromotion(promo.id),
+                  ),
+                );
+              },
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreatePromotion,
@@ -134,7 +174,7 @@ class _PromotionsTabState extends State<_PromotionsTab> {
 
 class _PromotionCard extends StatelessWidget {
   const _PromotionCard({required this.promo, required this.onToggle});
-  final _Promotion promo;
+  final PromotionModel promo;
   final VoidCallback onToggle;
 
   @override
@@ -263,23 +303,6 @@ class _MessagesTabState extends State<_MessagesTab> {
     );
   }
 }
-
-class _Promotion {
-  final String id;
-  final String title;
-  final String discount;
-  final bool isActive;
-  final DateTime expiresAt;
-
-  const _Promotion({required this.id, required this.title, required this.discount, required this.isActive, required this.expiresAt});
-  _Promotion toggle() => _Promotion(id: id, title: title, discount: discount, isActive: !isActive, expiresAt: expiresAt);
-}
-
-final _demoPromotions = [
-  _Promotion(id: '1', title: 'Weekend Special', discount: '15%', isActive: true, expiresAt: DateTime.now().add(const Duration(days: 2))),
-  _Promotion(id: '2', title: 'Bulk Buy Deal', discount: '10%', isActive: true, expiresAt: DateTime.now().add(const Duration(days: 14))),
-  _Promotion(id: '3', title: 'Ramadan Offer', discount: '20%', isActive: false, expiresAt: DateTime.now().subtract(const Duration(days: 30))),
-];
 
 const _templates = [
   {
