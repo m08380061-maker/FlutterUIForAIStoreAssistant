@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,6 +8,7 @@ import 'core/database/app_database.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utilities/app_date_utils.dart';
+import 'features/ai_assistant/services/model_manager.dart';
 import 'shared/services/auth_service.dart';
 import 'shared/services/storage_service.dart';
 
@@ -30,6 +33,10 @@ void main() async {
   await StorageService.instance.initialize();
   await AuthService.instance.initialize();
   await AppDatabase.instance.ensureSeeded();
+
+  // Resolve on-device model paths and create model directories if absent.
+  // Runs concurrently with app startup; never blocks launch.
+  unawaited(ModelManager.instance.ensureDirectoriesExist());
 
   runApp(const AiStoreAssistantApp());
 }

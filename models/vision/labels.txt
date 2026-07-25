@@ -1,0 +1,25 @@
+# Sample label map for the ONNX vision model.
+# Format: one label per line, matching the model's output class indices.
+# Optional prefix: "Category/ProductName"
+# Replace these with your actual trained model's classes.
+
+Grains/Rice (5kg)
+Grains/Rice (2kg)
+Grains/Flour (1kg)
+Grains/Corn (500g)
+Beverages/Cooking Oil (1L)
+Beverages/Cooking Oil (2L)
+Beverages/Water (1.5L)
+Beverages/Juice (1L)
+Dairy/Milk (1L)
+Dairy/Yogurt (500g)
+Dairy/Cheese (250g)
+Snacks/Chips (150g)
+Snacks/Biscuits (200g)
+Snacks/Chocolate (100g)
+Cleaning/Dish Soap (500ml)
+Cleaning/Laundry Detergent (1kg)
+Canned/Tomatoes (400g)
+Canned/Tuna (150g)
+Spices/Salt (1kg)
+Spices/Sugar (1kg)

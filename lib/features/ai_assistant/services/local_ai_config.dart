@@ -36,6 +36,12 @@ class LocalAiConfig {
   /// Number of CPU threads allocated for llama.cpp inference.
   static const int llamaThreads = 4;
 
+  /// Sampling temperature for llama.cpp (0 = greedy, higher = more creative).
+  static const double llamaTemperature = 0.8;
+
+  /// Nucleus-sampling cutoff probability for llama.cpp.
+  static const double llamaTopP = 0.95;
+
   // ── ONNX vision model ────────────────────────────────────────────────────
 
   /// Full path to the ONNX model file used by [OnnxVisionProvider].

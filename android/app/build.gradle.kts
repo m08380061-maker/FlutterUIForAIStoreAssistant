@@ -28,6 +28,30 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // llama.cpp native build via Android NDK.
+        // Only activates when llama.cpp source is present at the path declared
+        // in CMakeLists.txt.  If source is absent CMake skips the build and
+        // the app falls back to RuleBasedProvider at runtime (no crash).
+        externalNativeBuild {
+            cmake {
+                cppFlags("-std=c++17")
+                arguments("-DANDROID_STL=c++_shared")
+            }
+        }
+
+        ndk {
+            // Build for the two most common Android ABIs; add x86_64 for
+            // emulator support if needed.
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildTypes {

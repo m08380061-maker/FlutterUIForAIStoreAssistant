@@ -37,6 +37,11 @@ dependencies:
   path: ^1.9.1
   uuid: ^4.6.0
 
+  # Local AI — offline inference (no cloud APIs)
+  ffi: ^2.1.0             # dart:ffi utilities (StringUtf8Pointer, using(), etc.)
+  onnxruntime: ^1.4.1    # ONNX Runtime mobile for on-device vision inference
+  image: ^4.2.0           # Pure-Dart image decode/resize/normalise for ONNX input
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
