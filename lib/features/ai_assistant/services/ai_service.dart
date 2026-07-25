@@ -1,17 +1,17 @@
-/// AI Service — interface prepared for Gemini API integration.
+/// AI Service — single entry-point for all AI assistant features.
 ///
 /// Architecture:
-/// - [AiService] is the single entry-point for all AI features.
-/// - [AiMessage] represents a chat turn (user or assistant).
-/// - Image recognition and product understanding are declared as separate methods
-///   for clean separation when implementing with Gemini Vision.
+/// - [AiService] owns the chat history and delegates message handling to
+///   [AiCommandRouter], which selects the best available [AiProvider].
+/// - The current default provider is [RuleBasedProvider] (fully offline).
+/// - Cloud or local-model providers (Gemini, llama.cpp, ONNX) can be added
+///   to [AiCommandRouter] without touching this file.
 ///
-/// Security:
-/// - The API key MUST be supplied at runtime via --dart-define or a secure vault.
-/// - It is NEVER committed to source control.
-/// - All requests are proxied through the app backend to avoid exposing the key
-///   in client bundles (see _proxyRequest comment).
+/// Image recognition and restock recommendation stubs are retained here for
+/// future wiring to a vision-capable provider.
 library;
+
+import 'ai_command_router.dart';
 
 class AiMessage {
   final String id;
@@ -55,18 +55,18 @@ class AiService {
   AiService._();
   static final AiService instance = AiService._();
 
-  // API key loaded from secure config — NEVER hardcoded here.
-  // TODO: const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
-  // TODO: const String _endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-
   final List<AiMessage> _history = [];
 
   List<AiMessage> get history => List.unmodifiable(_history);
 
   void clearHistory() => _history.clear();
 
-  /// Sends a text message and returns the assistant reply.
-  /// Replace the stub with a real Gemini API call.
+  /// Sends [userText] to [AiCommandRouter] and appends both the user message
+  /// and the assistant reply to [history].
+  ///
+  /// The router selects the best available [AiProvider] (currently
+  /// [RuleBasedProvider] — fully offline). When a cloud or local-model
+  /// provider is added to the router, this method requires no changes.
   Future<AiMessage> sendMessage(String userText, {Map<String, dynamic>? context}) async {
     final userMsg = AiMessage(
       id: 'user-${DateTime.now().millisecondsSinceEpoch}',
@@ -77,12 +77,7 @@ class AiService {
     _history.add(userMsg);
 
     try {
-      // TODO: Replace with real Gemini API call via backend proxy.
-      // final payload = _buildPayload(userText, context);
-      // final response = await _proxyRequest(payload);
-      // final replyText = _extractText(response);
-      await Future.delayed(const Duration(milliseconds: 900));
-      final replyText = _demoReply(userText);
+      final replyText = await AiCommandRouter.instance.route(userText);
 
       final assistantMsg = AiMessage(
         id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
@@ -138,22 +133,4 @@ class AiService {
     ];
   }
 
-  // ── Private helpers ───────────────────────────────────────────────────────
-
-  String _demoReply(String question) {
-    final q = question.toLowerCase();
-    if (q.contains('profit')) {
-      return 'Based on today\'s sales, your estimated profit is YER 4,250. That\'s up 12% compared to yesterday. Your top profit driver is cooking oil.';
-    }
-    if (q.contains('order') || q.contains('stock')) {
-      return 'I recommend ordering more Rice (5kg bags) and Cooking Oil (1L). Both are running low and are your best-selling items this week.';
-    }
-    if (q.contains('slow') || q.contains('not selling')) {
-      return 'The slowest-moving products this week are canned sardines, biscuit assortments, and pomegranate juice. Consider a promotion or discount to clear stock.';
-    }
-    if (q.contains('sales') || q.contains('revenue')) {
-      return 'Today\'s total sales revenue is YER 18,500, with 47 transactions. The busiest hour was 10:00–11:00 AM.';
-    }
-    return 'I\'m your AI store assistant. You can ask me about profits, inventory levels, slow-selling products, restock recommendations, and more. How can I help?';
-  }
 }

@@ -86,7 +86,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('AI Assistant', style: TextStyle(fontSize: 16)),
-                Text('Powered by Gemini', style: textTheme.bodySmall?.copyWith(fontSize: 11)),
+                Text('Offline · Local AI', style: textTheme.bodySmall?.copyWith(fontSize: 11)),
               ],
             ),
           ],
