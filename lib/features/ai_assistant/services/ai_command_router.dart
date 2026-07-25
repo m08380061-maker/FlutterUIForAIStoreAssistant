@@ -1,4 +1,5 @@
 import '../providers/ai_provider.dart';
+import '../providers/llama_cpp_provider.dart';
 import '../providers/rule_based_provider.dart';
 import 'ai_context_service.dart';
 
@@ -24,9 +25,13 @@ class AiCommandRouter {
 
   /// Ordered provider list. First available provider handles the request.
   /// [RuleBasedProvider] is always last — it is always available offline.
+  ///
+  /// [LlamaCppProvider] is selected automatically when a GGUF model file
+  /// exists at [LocalAiConfig.llamaModelPath]; otherwise it reports
+  /// isAvailable = false and the router falls through to [RuleBasedProvider].
   final List<AiProvider> _providers = const [
-    // Future local-model providers go here, before RuleBasedProvider.
-    RuleBasedProvider(),
+    LlamaCppProvider(),   // on-device llama.cpp (active when model file present)
+    RuleBasedProvider(),  // permanent offline fallback — always available
   ];
 
   /// Builds a fresh [AiContext] snapshot, then delegates [message] to the

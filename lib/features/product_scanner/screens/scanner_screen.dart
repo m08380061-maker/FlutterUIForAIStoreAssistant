@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../features/ai_assistant/services/vision_command_router.dart';
 import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/repositories/repository_exceptions.dart';
 import '../../../shared/widgets/custom_button.dart';
@@ -44,8 +45,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
-  void _simulateScan() {
-    // TODO: Replace with real barcode scanner (e.g. mobile_scanner package)
+  Future<void> _simulateScan() async {
+    if (_mode == _ScanMode.image) {
+      await _triggerVisionScan();
+      return;
+    }
+    // Barcode mode: simulate a scan with placeholder product data.
+    // TODO: Replace with real barcode scanner (e.g. mobile_scanner package).
     setState(() {
       _scanned = true;
       _nameCtrl.text = 'Rice (5kg)';
@@ -55,6 +61,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _qtyCtrl.text = '50';
       _barcodeCtrl.text = '6281234567890';
     });
+  }
+
+  /// Delegates to [VisionCommandRouter] and handles the result.
+  ///
+  /// In production, [imageBytes] would come from the device camera.
+  /// Until a real camera integration is wired, we pass empty bytes;
+  /// [VisionCommandRouter] routes to [ManualFallbackVisionProvider] which
+  /// returns success = false, switching the user to manual-entry mode.
+  ///
+  /// When an ONNX model is loaded and recognition succeeds, the product
+  /// form is pre-filled with the detected name and category.
+  Future<void> _triggerVisionScan() async {
+    // TODO: Replace `const []` with real camera bytes once a camera
+    // integration (e.g. image_picker or camera package) is added.
+    final result = await VisionCommandRouter.instance.analyzeImage(const []);
+    if (!mounted) return;
+
+    if (result.success && result.productName != null) {
+      setState(() {
+        _scanned = true;
+        _nameCtrl.text = result.productName ?? '';
+        _categoryCtrl.text = result.category ?? '';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${result.message} '
+            '(${(result.confidence * 100).toStringAsFixed(0)}% confidence)',
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else {
+      // No model loaded or confidence too low — fall back to manual entry.
+      setState(() => _mode = _ScanMode.manual);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   Future<void> _saveProduct() async {
@@ -265,7 +313,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 class _ScannerViewport extends StatelessWidget {
   const _ScannerViewport({required this.mode, required this.onSimulateScan});
   final _ScanMode mode;
-  final VoidCallback onSimulateScan;
+  final Future<void> Function() onSimulateScan;
 
   @override
   Widget build(BuildContext context) {
