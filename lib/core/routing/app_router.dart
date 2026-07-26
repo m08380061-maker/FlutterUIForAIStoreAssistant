@@ -17,6 +17,7 @@ import '../../features/branches/screens/branches_screen.dart';
 import '../../features/marketing/screens/marketing_screen.dart';
 import '../../features/ai_assistant/screens/ai_chat_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/model_setup/screens/model_setup_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -107,6 +108,10 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/ai-models',
+        builder: (context, state) => const ModelSetupScreen(),
       ),
     ],
 

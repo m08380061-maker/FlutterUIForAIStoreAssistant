@@ -39,8 +39,11 @@ class OnnxVisionProvider implements VisionProvider {
   /// Expected spatial input size (height = width) for most mobile classifiers.
   static const int _inputSize = 224;
 
-  /// ONNX graph input node name — update if your model uses a different name.
-  static const String _inputName = 'input';
+  /// ONNX graph input node name for MobileNetV2-12 (ONNX Model Zoo opset 12).
+  ///
+  /// MobileNetV2-12 uses `data` (not `input`). Verify with Netron if you
+  /// swap to a different model file.
+  static const String _inputName = 'data';
 
   @override
   String get name => 'OnnxVision';
@@ -201,7 +204,7 @@ class OnnxVisionProvider implements VisionProvider {
       );
 
       final float = Float32List(3 * _inputSize * _inputSize);
-      final planeSize = _inputSize * _inputSize;
+      const planeSize = _inputSize * _inputSize;
 
       for (int y = 0; y < _inputSize; y++) {
         for (int x = 0; x < _inputSize; x++) {
@@ -226,6 +229,12 @@ class OnnxVisionProvider implements VisionProvider {
           .readAsLinesSync()
           .map((l) => l.trim())
           .where((l) => l.isNotEmpty && !l.startsWith('#'))
+          .map((l) {
+            // Handle ONNX Model Zoo synset format: "n01440764 tench, Tinca tinca"
+            // Strip the 9-character synset prefix (nXXXXXXXX + space) when present.
+            final synsetMatch = RegExp(r'^n\d{8} (.+)$').firstMatch(l);
+            return synsetMatch != null ? synsetMatch.group(1)! : l;
+          })
           .toList();
     } catch (_) {
       return [];

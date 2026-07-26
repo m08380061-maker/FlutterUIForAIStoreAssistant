@@ -243,6 +243,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
+            // Local AI
+            _SectionHeader(title: 'Local AI'),
+            const SizedBox(height: 8),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: _NavTile(
+                icon: Icons.model_training_rounded,
+                label: 'AI Models',
+                onTap: () => context.go('/ai-models'),
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // About
             _SectionHeader(title: 'About'),
             const SizedBox(height: 8),

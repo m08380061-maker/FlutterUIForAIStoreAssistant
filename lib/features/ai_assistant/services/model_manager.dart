@@ -33,6 +33,45 @@ class ModelManager {
   static const _visionSubPath = 'models/vision/model.onnx';
   static const _labelsSubPath = 'models/vision/labels.txt';
 
+  // ── Download URLs ─────────────────────────────────────────────────────────
+
+  /// Public download URL for the chat model (Qwen 2.5 · 0.5 B · Q4_K_M GGUF).
+  ///
+  /// Source: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
+  /// File size: ≈ 397 MB
+  static const String chatModelUrl =
+      'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/'
+      'qwen2.5-0.5b-instruct-q4_k_m.gguf';
+
+  /// Public download URL for the vision model (MobileNetV2-12, ONNX opset 12).
+  ///
+  /// Source: https://github.com/onnx/models (validated/vision/classification/mobilenet)
+  /// Input:  `data`  [1, 3, 224, 224]  float32
+  /// Output: [1, 1000] float32 (ImageNet classes)
+  /// File size: ≈ 14 MB
+  static const String visionModelUrl =
+      'https://github.com/onnx/models/raw/main/validated/vision/'
+      'classification/mobilenet/model/mobilenetv2-12.onnx';
+
+  /// Public download URL for the ImageNet synset label map used with
+  /// [visionModelUrl]. One label per line; format: `n01234567 class name`.
+  ///
+  /// Source: ONNX Model Zoo MobileNetV2 dependencies
+  /// File size: ≈ 50 KB
+  static const String visionLabelsUrl =
+      'https://raw.githubusercontent.com/onnx/models/main/validated/vision/'
+      'classification/mobilenet/dependencies/synset.txt';
+
+  // ── Convenience availability flags ────────────────────────────────────────
+
+  /// `true` when the GGUF model file exists and [LlamaCppProvider] can activate.
+  bool get isChatModelReady => fileExists(llamaModelPath);
+
+  /// `true` when both the ONNX model and its labels file exist and
+  /// [OnnxVisionProvider] can activate.
+  bool get isVisionModelReady =>
+      fileExists(onnxModelPath) && fileExists(onnxLabelsPath);
+
   String? _docsDir;
   bool _initialised = false;
 
