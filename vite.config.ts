@@ -3,7 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
-import siteConfiguration from './.figma/make/site.json'
+let siteConfiguration: FigmaSiteConfiguration = {}
+try {
+  siteConfiguration = (await import('./.figma/make/site.json')).default
+} catch {
+  // site.json is a Figma Make platform file that may not exist in all environments
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
