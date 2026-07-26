@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
+import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'daos/branches_dao.dart';
 import 'daos/customers_dao.dart';
@@ -23,7 +27,7 @@ part 'app_database.g.dart';
 /// The single Drift database for the AI Store Assistant app.
 ///
 /// All tables, DAOs, and migrations live here. The database is opened
-/// with [driftDatabase] which picks the correct SQLite backend for the
+/// with [NativeDatabase] which picks the correct SQLite backend for the
 /// current platform (Android, iOS, macOS, Linux, Windows).
 ///
 /// Usage via [ServiceLocator]:
@@ -64,7 +68,15 @@ class AppDatabase extends _$AppDatabase {
   /// AppDatabase(NativeDatabase.memory())
   /// ```
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'ai_store_assistant_db'));
+      : super(executor ?? _openConnection());
+
+  static QueryExecutor _openConnection() {
+    return LazyDatabase(() async {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dir.path, 'ai_store_assistant_db.sqlite'));
+      return NativeDatabase.createInBackground(file);
+    });
+  }
 
   @override
   int get schemaVersion => 1;
