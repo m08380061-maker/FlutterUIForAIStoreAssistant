@@ -29,7 +29,7 @@ val hasReleaseKey = keyPropertiesFile.exists() &&
 android {
     namespace = "com.aistoreassistant.ai_store_assistant"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

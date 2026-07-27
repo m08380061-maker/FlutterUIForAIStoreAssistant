@@ -31,10 +31,10 @@ jobs:
           cache: true
 
       # ── Android NDK (required by externalNativeBuild / CMake block) ─────────
-      - name: Install Android NDK 26.1.10909125
+      - name: Install Android NDK 27.0.12077973
         run: |
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "ndk;26.1.10909125" --channel=0
+            "ndk;27.0.12077973" --channel=0
 
       # ── Dependencies ─────────────────────────────────────────────────────────
       - name: Install Flutter dependencies
