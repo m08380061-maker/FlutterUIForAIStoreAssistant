@@ -73,6 +73,11 @@ coverage/
 secrets.dart
 config/secrets.dart
 
+# Android release signing — never commit keystores or key.properties
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
 # Web artifacts (old prototype)
 node_modules/
 dist/
