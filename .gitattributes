@@ -144,3 +144,14 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+
+# ---------------------------------------------------------------------------
+# Android / iOS resource PNGs — must be regular git objects, NOT LFS.
+# AAPT2 (Android resource compiler) receives LFS pointer text files when
+# actions/checkout runs without lfs:true, causing "file failed to compile".
+# Override the *.png LFS rule for all platform resource directories.
+# ---------------------------------------------------------------------------
+android/app/src/main/res/**/*.png  -filter -diff -merge -text
+android/app/src/main/res/**/*.jpg  -filter -diff -merge -text
+ios/Runner/**/*.png                -filter -diff -merge -text
+ios/Runner/**/*.jpg                -filter -diff -merge -text
