@@ -35,7 +35,9 @@ jobs:
       # ── Android NDK (required by externalNativeBuild / CMake block) ─────────
       - name: Install Android NDK 27.0.12077973
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "ndk;27.0.12077973" --channel=0
 
       # ── Dependencies ─────────────────────────────────────────────────────────
