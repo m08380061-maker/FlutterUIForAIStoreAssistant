@@ -56,17 +56,18 @@ class AiService {
   static final AiService instance = AiService._();
 
   final List<AiMessage> _history = [];
+  bool _isArabic = false;
+
+  bool get isArabic => _isArabic;
+
+  void toggleLanguage() {
+    _isArabic = !_isArabic;
+  }
 
   List<AiMessage> get history => List.unmodifiable(_history);
 
   void clearHistory() => _history.clear();
 
-  /// Sends [userText] to [AiCommandRouter] and appends both the user message
-  /// and the assistant reply to [history].
-  ///
-  /// The router selects the best available [AiProvider] (currently
-  /// [RuleBasedProvider] — fully offline). When a cloud or local-model
-  /// provider is added to the router, this method requires no changes.
   Future<AiMessage> sendMessage(String userText, {Map<String, dynamic>? context}) async {
     final userMsg = AiMessage(
       id: 'user-${DateTime.now().millisecondsSinceEpoch}',
@@ -77,7 +78,7 @@ class AiService {
     _history.add(userMsg);
 
     try {
-      final replyText = await AiCommandRouter.instance.route(userText);
+      final replyText = await AiCommandRouter.instance.route(userText, isArabic: _isArabic);
 
       final assistantMsg = AiMessage(
         id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
@@ -90,7 +91,9 @@ class AiService {
     } catch (e) {
       final errorMsg = AiMessage(
         id: 'err-${DateTime.now().millisecondsSinceEpoch}',
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: _isArabic
+            ? 'حدث خطأ. حاول مرة أخرى.'
+            : 'Sorry, I encountered an error. Please try again.',
         role: AiRole.assistant,
         timestamp: DateTime.now(),
         isError: true,
@@ -100,37 +103,25 @@ class AiService {
     }
   }
 
-  /// Analyzes a product image and returns extracted product information.
-  /// TODO: Implement with Gemini Vision API.
   Future<Map<String, dynamic>> analyzeProductImage(List<int> imageBytes) async {
     await Future.delayed(const Duration(seconds: 1));
     return {
       'name': 'Detected Product',
       'category': 'General',
       'confidence': 0.0,
-      'message': 'Image recognition not yet implemented. Connect Gemini Vision API.',
+      'message': _isArabic
+          ? 'التعرف على الصور غير متصل بعد.'
+          : 'Image recognition not yet implemented.',
     };
   }
 
-  /// Provides AI-driven inventory recommendations based on sales history.
-  /// TODO: Wire to Gemini with business context from the backend.
   Future<List<AiProductSuggestion>> getRestockRecommendations(
     List<Map<String, dynamic>> inventorySnapshot,
   ) async {
     await Future.delayed(const Duration(milliseconds: 700));
-    // Demo stubs — replace with real AI analysis
     return [
-      const AiProductSuggestion(
-        productName: 'Rice (5kg)',
-        reason: 'High demand, low stock',
-        estimatedQuantity: 50,
-      ),
-      const AiProductSuggestion(
-        productName: 'Cooking Oil (1L)',
-        reason: 'Top seller this week',
-        estimatedQuantity: 30,
-      ),
+      const AiProductSuggestion(productName: 'Rice (5kg)', reason: 'High demand, low stock', estimatedQuantity: 50),
+      const AiProductSuggestion(productName: 'Cooking Oil (1L)', reason: 'Top seller this week', estimatedQuantity: 30),
     ];
   }
-
 }

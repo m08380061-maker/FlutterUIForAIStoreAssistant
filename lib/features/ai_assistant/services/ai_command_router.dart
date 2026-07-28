@@ -3,54 +3,28 @@ import '../providers/llama_cpp_provider.dart';
 import '../providers/rule_based_provider.dart';
 import 'ai_context_service.dart';
 
-/// Routes assistant messages to the first available [AiProvider].
-///
-/// Providers are tried in order. The list is intentionally ordered from
-/// most-capable to least-capable so that a local model (when added) takes
-/// priority over the rule-based fallback.
-///
-/// ## Adding a local model backend
-/// ```dart
-/// // In the _providers list, insert before RuleBasedProvider:
-/// LlamaCppProvider(),   // llama.cpp via dart:ffi
-/// OnnxProvider(),       // ONNX Runtime
-/// ```
-/// Each provider controls its own [AiProvider.isAvailable] flag so the
-/// router degrades gracefully when the model is not yet loaded.
 class AiCommandRouter {
   AiCommandRouter._();
   static final AiCommandRouter instance = AiCommandRouter._();
 
   final AiContextService _contextService = AiContextService.instance;
 
-  /// Ordered provider list. First available provider handles the request.
-  /// [RuleBasedProvider] is always last — it is always available offline.
-  ///
-  /// [LlamaCppProvider] is selected automatically when a GGUF model file
-  /// exists at [LocalAiConfig.llamaModelPath]; otherwise it reports
-  /// isAvailable = false and the router falls through to [RuleBasedProvider].
   final List<AiProvider> _providers = const [
-    LlamaCppProvider(),   // on-device llama.cpp (active when model file present)
-    RuleBasedProvider(),  // permanent offline fallback — always available
+    LlamaCppProvider(),
+    RuleBasedProvider(),
   ];
 
-  /// Builds a fresh [AiContext] snapshot, then delegates [message] to the
-  /// first available provider. Falls back to a safe error string if no
-  /// provider is available (which should never happen with RuleBasedProvider
-  /// in the list).
-  Future<String> route(String message) async {
+  Future<String> route(String message, {bool isArabic = false}) async {
     final context = await _contextService.buildContext();
 
     for (final provider in _providers) {
       if (provider.isAvailable) {
-        return provider.respond(message, context);
+        return provider.respond(message, context, isArabic: isArabic);
       }
     }
 
     return 'I\'m unable to process your request right now. Please try again.';
   }
 
-  /// Exposes [AiContextService.invalidate] for callers that know the
-  /// store data has changed (e.g. after completing a sale).
   void invalidateContext() => _contextService.invalidate();
 }
