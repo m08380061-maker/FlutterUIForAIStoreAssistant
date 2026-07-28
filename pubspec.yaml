@@ -38,9 +38,17 @@ dependencies:
   uuid: ^4.6.0
 
   # Local AI — offline inference (no cloud APIs)
-  ffi: ^2.1.0             # dart:ffi utilities (StringUtf8Pointer, using(), etc.)
-  onnxruntime: ^1.4.1    # ONNX Runtime mobile for on-device vision inference
-  image: ^4.2.0           # Pure-Dart image decode/resize/normalise for ONNX input
+  ffi: ^2.1.0
+  onnxruntime: ^1.4.1
+  image: ^4.2.0
+
+  # Camera & Scanner
+  mobile_scanner: ^5.2.0
+  camera: ^0.11.0
+  image_picker: ^1.1.2
+
+  # Voice / Speech
+  speech_to_text: ^7.4.0
 
 dev_dependencies:
   flutter_test:

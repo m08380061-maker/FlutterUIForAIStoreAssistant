@@ -12,7 +12,6 @@ try {
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
   const emitSourcemaps = mode === 'development'
 
   return {
@@ -74,7 +73,6 @@ type FigmaSiteConfiguration = {
   }
 }
 
-/** Applies /.figma/make/site.json to the generated document shell. */
 function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
   function sanitizeHtmlValue(value: string | undefined): string {
     return value?.replace(/[^a-zA-Z0-9_-]/g, '') || ''
@@ -103,19 +101,13 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (!robotsTxt || req.url?.split('?')[0] !== '/robots.txt') return next()
-
         res.setHeader('Content-Type', 'text/plain; charset=utf-8')
         res.end(robotsTxt)
       })
     },
     generateBundle() {
       if (!robotsTxt) return
-
-      this.emitFile({
-        type: 'asset',
-        fileName: 'robots.txt',
-        source: robotsTxt,
-      })
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsTxt })
     },
     transformIndexHtml: {
       order: 'pre',
@@ -151,92 +143,30 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
             { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage }, injectTo: 'head' },
           )
         }
-
         if (googleAnalyticsId) {
           tags.push(
-            {
-              tag: 'script',
-              attrs: {
-                async: true,
-                src: `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`,
-              },
-              injectTo: 'head',
-            },
-            {
-              tag: 'script',
-              children: `
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', ${JSON.stringify(googleAnalyticsId)});
-`,
-              injectTo: 'head',
-            },
+            { tag: 'script', attrs: { async: true, src: `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}` }, injectTo: 'head' },
+            { tag: 'script', children: `\n  window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag('js', new Date());\n  gtag('config', ${JSON.stringify(googleAnalyticsId)});\n`, injectTo: 'head' },
           )
         }
-
         if (config.accessibility?.addBypassLinks) {
           tags.push(
-            {
-              tag: 'style',
-              children: `
-  .figma-bypass-link {
-    position: fixed;
-    top: 8px;
-    left: 8px;
-    z-index: 2147483647;
-    transform: translateY(-150%);
-    border-radius: 6px;
-    background: #111827;
-    color: #fff;
-    padding: 8px 12px;
-    font: 600 14px/1.2 system-ui, sans-serif;
-    text-decoration: none;
-  }
-  .figma-bypass-link:focus {
-    transform: translateY(0);
-  }
-`,
-              injectTo: 'head',
-            },
-            {
-              tag: 'a',
-              attrs: { class: 'figma-bypass-link', href: '#root' },
-              children: 'Skip to content',
-              injectTo: 'body-prepend',
-            },
+            { tag: 'style', children: `\n  .figma-bypass-link {\n    position: fixed;\n    top: 8px;\n    left: 8px;\n    z-index: 2147483647;\n    transform: translateY(-150%);\n    border-radius: 6px;\n    background: #111827;\n    color: #fff;\n    padding: 8px 12px;\n    font: 600 14px/1.2 system-ui, sans-serif;\n    text-decoration: none;\n  }\n  .figma-bypass-link:focus {\n    transform: translateY(0);\n  }\n`, injectTo: 'head' },
+            { tag: 'a', attrs: { class: 'figma-bypass-link', href: '#root' }, children: 'Skip to content', injectTo: 'body-prepend' },
           )
         }
-
-        return {
-          html: result,
-          tags,
-        }
+        return { html: result, tags }
       },
     },
   }
 }
 
-/**
- * Replay the most recent build error to clients that connect after
- * it was first broadcast. Vite buffers an error payload only while
- * no clients are connected and clears the buffer on the first
- * reconnect (see `bufferedMessage` in `createWebSocketServer`), so
- * if the preview iframe reloads after Vite already delivered an
- * error to a live socket, the new socket misses the payload and
- * the overlay stays hidden even though the build is still broken.
- * We intercept `ws.send` to remember the latest error and replay
- * it on every new connection; the cache clears on a successful
- * `update` or `full-reload` so a stale overlay can't survive a
- * fixed build.
- */
 function figmaErrorOverlayReplay(): Plugin {
   return {
     name: 'figma-error-overlay-replay',
     apply: 'serve',
     configureServer(server) {
       let lastError: object | null = null
-
       const origSend = server.ws.send.bind(server.ws) as (...args: any[]) => void
       server.ws.send = ((...args: any[]) => {
         const payload = args[0]
@@ -250,7 +180,6 @@ function figmaErrorOverlayReplay(): Plugin {
         }
         return origSend(...args)
       }) as typeof server.ws.send
-
       server.ws.on('connection', (socket) => {
         if (lastError !== null) {
           socket.send(JSON.stringify(lastError))
@@ -260,22 +189,9 @@ function figmaErrorOverlayReplay(): Plugin {
   }
 }
 
-/**
- * Reload when a module that previously defined a React Refresh boundary stops
- * defining one. This happens when an agent moves a component into a new file
- * and replaces the old module with a re-export:
- *
- *   export { default } from './app/App'
- *
- * Vite otherwise accepts the update using the previous module's HMR boundary,
- * but the re-export-only transform no longer registers a replacement for the
- * mounted component family. React reports a successful refresh while leaving
- * the old tree mounted until the page is reloaded.
- */
 function figmaReactRefreshBoundaryFallback(): Plugin {
   const hadRefreshBoundary = new Map<string, boolean>()
   let sendFullReload: (() => void) | null = null
-
   return {
     name: 'figma-react-refresh-boundary-fallback',
     apply: 'serve',
@@ -285,54 +201,25 @@ function figmaReactRefreshBoundaryFallback(): Plugin {
     },
     transform(code, id) {
       if (!/\.[jt]sx?(?:\?|$)/.test(id) || id.includes('/node_modules/')) return null
-
       const moduleId = id.split('?')[0] ?? id
       const hasRefreshBoundary = code.includes('registerExportsForReactRefresh')
       const previousHadRefreshBoundary = hadRefreshBoundary.get(moduleId)
       hadRefreshBoundary.set(moduleId, hasRefreshBoundary)
-
       if (previousHadRefreshBoundary && !hasRefreshBoundary) {
         queueMicrotask(() => sendFullReload?.())
       }
-
       return null
     },
   }
 }
 
-/**
- * Serves a blank render-target page at /.figma/make/kit.html that
- * the Figma preview script drives directly. The page exposes a
- * registry of every file matching `storiesGlob` on
- * window.__FIGMA__.stories so the design surface can dynamically
- * import + mount each entry into its own grid view.
- *
- * Dev-only: `apply: 'serve'` gates the plugin to `vite dev`. Prod
- * builds (`vite build`) skip it entirely so the route doesn't leak
- * into shipped bundles.
- */
 function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin {
   const storiesGlob = Array.isArray(options.storiesGlob) ? options.storiesGlob : [options.storiesGlob]
   const ROUTE = '/.figma/make/kit.html'
   const VIRTUAL_ID = 'virtual:figma-stories'
   const RESOLVED_ID = '\0' + VIRTUAL_ID
   const STORIES_MODULE = `export const stories = import.meta.glob(${JSON.stringify(storiesGlob)})`
-  const HTML_BOOTSTRAP = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<body>
-<div id="figma-make-kit-root"></div>
-<script type="module">
-  import { stories } from 'virtual:figma-stories'
-  window.__FIGMA__ = Object.assign(window.__FIGMA__ ?? {}, { stories })
-  window.dispatchEvent(new CustomEvent('figma.ready'))
-</script>
-</body>
-</html>`
-
+  const HTML_BOOTSTRAP = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n</head>\n<body>\n<div id="figma-make-kit-root"></div>\n<script type="module">\n  import { stories } from 'virtual:figma-stories'\n  window.__FIGMA__ = Object.assign(window.__FIGMA__ ?? {}, { stories })\n  window.dispatchEvent(new CustomEvent('figma.ready'))\n</script>\n</body>\n</html>`
   return {
     name: 'figma-make-kit',
     apply: 'serve',
@@ -348,7 +235,6 @@ function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || ''
         if (url.split('?')[0] !== ROUTE) return next()
-
         try {
           res.setHeader('Content-Type', 'text/html')
           res.end(await server.transformIndexHtml(url, HTML_BOOTSTRAP))
