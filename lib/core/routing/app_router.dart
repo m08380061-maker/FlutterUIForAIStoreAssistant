@@ -17,7 +17,7 @@ import '../../features/branches/screens/branches_screen.dart';
 import '../../features/marketing/screens/marketing_screen.dart';
 import '../../features/ai_assistant/screens/ai_chat_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
-import '../../features/model_setup/screens/model_setup_screen.dart';
+import '../i18n/app_translations.dart';
 
 class AppRouter {
   AppRouter._();
@@ -109,10 +109,6 @@ class AppRouter {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-      GoRoute(
-        path: '/ai-models',
-        builder: (context, state) => const ModelSetupScreen(),
-      ),
     ],
 
     // Global error page
@@ -123,13 +119,13 @@ class AppRouter {
           children: [
             const Icon(Icons.error_outline_rounded, size: 64),
             const SizedBox(height: 16),
-            Text('Page not found', style: Theme.of(context).textTheme.titleLarge),
+            Text(context.tr.pageNotFound, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(state.uri.path, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go('/splash'),
-              child: const Text('Go Home'),
+              child: Text(context.tr.goHome),
             ),
           ],
         ),

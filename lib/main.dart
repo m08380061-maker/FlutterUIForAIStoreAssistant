@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/database/app_database.dart';
+import 'core/i18n/app_translations.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utilities/app_date_utils.dart';
@@ -12,11 +13,13 @@ import 'shared/services/storage_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Lock orientation to portrait for mobile
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // System UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -24,6 +27,7 @@ void main() async {
     ),
   );
 
+  // Initialize services
   await StorageService.instance.initialize();
   await AuthService.instance.initialize();
   await AppDatabase.instance.ensureSeeded();
@@ -34,29 +38,28 @@ void main() async {
 class AiStoreAssistantApp extends StatefulWidget {
   const AiStoreAssistantApp({super.key});
 
-  static void setThemeMode(BuildContext context, ThemeMode mode) {
-    final state = context.findAncestorStateOfType<_AiStoreAssistantAppState>();
-    state?._setThemeMode(mode);
-  }
-
-  static void setLocale(BuildContext context, Locale locale) {
-    final state = context.findAncestorStateOfType<_AiStoreAssistantAppState>();
-    state?._setLocale(locale);
-  }
-
   @override
   State<AiStoreAssistantApp> createState() => _AiStoreAssistantAppState();
 }
 
 class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-  Locale _locale = const Locale('en');
+  late ThemeMode _themeMode;
 
   @override
   void initState() {
     super.initState();
     _themeMode = _resolveThemeMode();
-    _locale = _resolveLocale();
+    LocaleProvider.instance.addListener(_onLocaleChanged);
+  }
+
+  @override
+  void dispose() {
+    LocaleProvider.instance.removeListener(_onLocaleChanged);
+    super.dispose();
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
   }
 
   ThemeMode _resolveThemeMode() {
@@ -71,21 +74,10 @@ class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
     }
   }
 
-  Locale _resolveLocale() {
-    final lang = StorageService.instance.getLanguage();
-    return Locale(lang == 'ar' ? 'ar' : 'en');
-  }
-
-  void _setThemeMode(ThemeMode mode) {
-    setState(() => _themeMode = mode);
-  }
-
-  void _setLocale(Locale locale) {
-    setState(() => _locale = locale);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final localeProvider = LocaleProvider.instance;
+
     return MaterialApp.router(
       title: 'AI Store Assistant',
       debugShowCheckedModeBanner: false,
@@ -93,7 +85,9 @@ class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
       darkTheme: AppTheme.dark,
       themeMode: _themeMode,
       routerConfig: AppRouter.router,
-      locale: _locale,
+
+      // Localization support — Arabic RTL + English
+      locale: localeProvider.locale,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -104,11 +98,7 @@ class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
         Locale('ar'),
       ],
       builder: (context, child) {
-        final isRtl = _locale.languageCode == 'ar';
-        return Directionality(
-          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-          child: child ?? const SizedBox.shrink(),
-        );
+        return AppTranslations(child: child ?? const SizedBox.shrink());
       },
     );
   }
