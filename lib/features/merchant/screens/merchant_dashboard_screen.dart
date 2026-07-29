@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utilities/app_date_utils.dart';
-import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/models/sale_model.dart';
+import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/repositories/sale_repository.dart';
 import '../../../shared/services/auth_service.dart';
 import '../../../shared/widgets/app_card.dart';
@@ -21,17 +21,21 @@ class MerchantDashboardScreen extends StatefulWidget {
 class _MerchantDashboardScreenState extends State<MerchantDashboardScreen> {
   int _navIndex = 0;
 
-  final _tabs = const [
-    _DashboardTab(),
-    _PlaceholderTab(label: 'Inventory', icon: Icons.inventory_2_rounded, route: '/inventory'),
-    _PlaceholderTab(label: 'Sales', icon: Icons.receipt_long_rounded, route: '/sales'),
-    _PlaceholderTab(label: 'Analytics', icon: Icons.bar_chart_rounded, route: '/analytics'),
-  ];
+  List<Widget> _tabs(BuildContext context) {
+    final tr = context.tr;
+    return [
+      const _DashboardTab(),
+      _PlaceholderTab(label: tr.inventory, icon: Icons.inventory_2_rounded, route: '/inventory'),
+      _PlaceholderTab(label: tr.sales, icon: Icons.receipt_long_rounded, route: '/sales'),
+      _PlaceholderTab(label: tr.analytics, icon: Icons.bar_chart_rounded, route: '/analytics'),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return Scaffold(
-      body: IndexedStack(index: _navIndex, children: _tabs),
+      body: IndexedStack(index: _navIndex, children: _tabs(context)),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _navIndex,
         onTap: (i) {
@@ -43,11 +47,11 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen> {
             case 3: context.push('/analytics');
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Inventory'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Sales'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Analytics'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.dashboard_rounded), label: tr.home),
+          BottomNavigationBarItem(icon: const Icon(Icons.inventory_2_rounded), label: tr.inventory),
+          BottomNavigationBarItem(icon: const Icon(Icons.receipt_long_rounded), label: tr.sales),
+          BottomNavigationBarItem(icon: const Icon(Icons.bar_chart_rounded), label: tr.analytics),
         ],
       ),
     );
@@ -68,7 +72,6 @@ class _DashboardTabState extends State<_DashboardTab> {
   int _lowStockCount = 0;
   double _todayRevenue = 0;
   double _todayProfit = 0;
-  List<SaleModel> _recentSales = [];
   bool _isLoading = true;
 
   @override
@@ -80,20 +83,16 @@ class _DashboardTabState extends State<_DashboardTab> {
   Future<void> _loadMetrics() async {
     setState(() => _isLoading = true);
     try {
-      final results = await Future.wait([
-        _productRepository.getInventoryCount(),
-        _productRepository.getLowStockCount(),
-        _saleRepository.getTodayRevenue(),
-        _saleRepository.getTodayProfit(),
-        _saleRepository.getRecentSales(),
-      ]);
+      final inventoryCount = await _productRepository.getInventoryCount();
+      final lowStockCount = await _productRepository.getLowStockCount();
+      final todayRevenue = await _saleRepository.getTodayRevenue();
+      final todayProfit = await _saleRepository.getTodayProfit();
       if (!mounted) return;
       setState(() {
-        _inventoryCount = results[0] as int;
-        _lowStockCount = results[1] as int;
-        _todayRevenue = results[2] as double;
-        _todayProfit = results[3] as double;
-        _recentSales = results[4] as List<SaleModel>;
+        _inventoryCount = inventoryCount;
+        _lowStockCount = lowStockCount;
+        _todayRevenue = todayRevenue;
+        _todayProfit = todayProfit;
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,9 +101,10 @@ class _DashboardTabState extends State<_DashboardTab> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final user = AuthService.instance.currentUser;
     final textTheme = Theme.of(context).textTheme;
-    final greeting = _greeting();
+    final greeting = _greeting(context);
 
     return Scaffold(
       body: CustomScrollView(
@@ -131,7 +131,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                       style: textTheme.bodyLarge?.copyWith(color: Colors.white70),
                     ),
                     Text(
-                      user?.fullName ?? 'Merchant',
+                      user?.fullName ?? tr.merchantFallback,
                       style: textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -179,29 +179,29 @@ class _DashboardTabState extends State<_DashboardTab> {
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
                           StatCard(
-                            label: AppStrings.todaySales,
-                            value: 'YER ${_todayRevenue.toStringAsFixed(0)}',
+                            label: tr.todaySales,
+                            value: tr.formatCurrency(_todayRevenue),
                             icon: Icons.trending_up_rounded,
                             color: AppColors.primary,
                             change: null,
                           ),
                           StatCard(
-                            label: AppStrings.todayProfit,
-                            value: 'YER ${_todayProfit.toStringAsFixed(0)}',
+                            label: tr.todayProfit,
+                            value: tr.formatCurrency(_todayProfit),
                             icon: Icons.attach_money_rounded,
                             color: AppColors.accent,
                             change: null,
                           ),
                           StatCard(
-                            label: AppStrings.inventory,
-                            value: '$_inventoryCount items',
+                            label: tr.inventory,
+                            value: '$_inventoryCount ${tr.items}',
                             icon: Icons.inventory_2_rounded,
                             color: const Color(0xFF7C3AED),
                             change: null,
                           ),
                           StatCard(
-                            label: AppStrings.lowStock,
-                            value: '$_lowStockCount products',
+                            label: tr.lowStock,
+                            value: '$_lowStockCount ${tr.products}',
                             icon: Icons.warning_amber_rounded,
                             color: AppColors.warning,
                             change: null,
@@ -212,33 +212,33 @@ class _DashboardTabState extends State<_DashboardTab> {
                 const SizedBox(height: 20),
 
                 // Quick actions
-                Text(AppStrings.quickActions, style: textTheme.titleMedium),
+                Text(tr.quickActions, style: textTheme.titleMedium),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     _QuickAction(
-                      label: 'New Sale',
+                      label: tr.newSale,
                       icon: Icons.add_shopping_cart_rounded,
                       color: AppColors.primary,
                       onTap: () => context.push('/sales'),
                     ),
                     const SizedBox(width: 12),
                     _QuickAction(
-                      label: 'Scan Product',
+                      label: tr.scanProduct,
                       icon: Icons.qr_code_scanner_rounded,
                       color: const Color(0xFF7C3AED),
                       onTap: () => context.push('/scanner'),
                     ),
                     const SizedBox(width: 12),
                     _QuickAction(
-                      label: 'AI Assistant',
+                      label: tr.aiAssistant,
                       icon: Icons.psychology_rounded,
                       color: AppColors.accentOrange,
                       onTap: () => context.push('/ai-assistant'),
                     ),
                     const SizedBox(width: 12),
                     _QuickAction(
-                      label: 'Add Debt',
+                      label: tr.addDebt,
                       icon: Icons.person_add_rounded,
                       color: AppColors.error,
                       onTap: () => context.push('/debts'),
@@ -251,20 +251,20 @@ class _DashboardTabState extends State<_DashboardTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(AppStrings.aiRecommendations, style: textTheme.titleMedium),
+                    Text(tr.aiRecommendations, style: textTheme.titleMedium),
                     TextButton(
                       onPressed: () => context.push('/ai-assistant'),
-                      child: const Text(AppStrings.viewAll),
+                      child: Text(tr.viewAll),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const _AiRecommendationCard(
-                  message: '📦 Rice (5kg) is running low (8 units). Consider ordering at least 50 bags before the weekend rush.',
+                _AiRecommendationCard(
+                  message: tr.aiRec1,
                 ),
                 const SizedBox(height: 8),
-                const _AiRecommendationCard(
-                  message: '📈 Cooking Oil sales are up 24% this week. You could increase the price slightly for better margins.',
+                _AiRecommendationCard(
+                  message: tr.aiRec2,
                 ),
                 const SizedBox(height: 20),
 
@@ -272,25 +272,54 @@ class _DashboardTabState extends State<_DashboardTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(AppStrings.recentTransactions, style: textTheme.titleMedium),
-                    TextButton(onPressed: () => context.push('/sales'), child: const Text(AppStrings.viewAll)),
+                    Text(tr.recentTransactions, style: textTheme.titleMedium),
+                    TextButton(onPressed: () => context.push('/sales'), child: Text(tr.viewAll)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                if (_recentSales.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'No transactions yet',
-                      style: textTheme.bodySmall,
-                    ),
-                  )
-                else
-                  ..._recentSales.map((s) => _TransactionTile(data: {
-                        'label': 'Sale — ${s.items.length} item${s.items.length == 1 ? '' : 's'}',
-                        'time': AppDateUtils.relativeTime(s.createdAt),
-                        'amount': '+YER ${s.total.toStringAsFixed(0)}',
-                      })),
+                StreamBuilder<List<SaleModel>>(
+                  stream: _saleRepository.watchRecentSales(limit: 5),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          tr.unableLoadSales,
+                          style: textTheme.bodySmall?.copyWith(color: AppColors.error),
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      );
+                    }
+                    final sales = snapshot.data!;
+                    if (sales.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: Text(
+                            tr.noSalesToday,
+                            style: textTheme.bodySmall,
+                          ),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: sales
+                          .map((sale) => _TransactionTile(sale: sale))
+                          .toList(),
+                    );
+                  },
+                ),
                 const SizedBox(height: 24),
               ]),
             ),
@@ -301,16 +330,16 @@ class _DashboardTabState extends State<_DashboardTab> {
         onPressed: () => context.push('/ai-assistant'),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.psychology_rounded, color: Colors.white),
-        label: const Text('AI Assistant', style: TextStyle(color: Colors.white)),
+        label: Text(tr.aiAssistant, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
 
-  String _greeting() {
+  String _greeting(BuildContext context) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return context.tr.goodMorning;
+    if (h < 17) return context.tr.goodAfternoon;
+    return context.tr.goodEvening;
   }
 }
 
@@ -331,7 +360,7 @@ class _PlaceholderTab extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => context.push(route),
-                child: Text('Open $label'),
+                child: Text('${context.tr.open} $label'),
               ),
             ],
           ),
@@ -413,12 +442,17 @@ class _AiRecommendationCard extends StatelessWidget {
 }
 
 class _TransactionTile extends StatelessWidget {
-  const _TransactionTile({required this.data});
-  final Map<String, dynamic> data;
+  const _TransactionTile({required this.sale});
+  final SaleModel sale;
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
+    final itemCount = sale.items.fold<int>(0, (sum, item) => sum + item.quantity);
+    final timeLabel = AppDateUtils.relativeTime(sale.createdAt.toLocal());
+    final amountLabel = '+${tr.formatCurrency(sale.total)}';
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: AppCard(
@@ -439,13 +473,16 @@ class _TransactionTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(data['label'] as String, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                  Text(data['time'] as String, style: textTheme.bodySmall),
+                  Text(
+                    '$itemCount ${tr.items}',
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  Text(timeLabel, style: textTheme.bodySmall),
                 ],
               ),
             ),
             Text(
-              data['amount'] as String,
+              amountLabel,
               style: textTheme.titleSmall?.copyWith(
                 color: AppColors.success,
                 fontWeight: FontWeight.w700,
@@ -457,4 +494,3 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 }
-
