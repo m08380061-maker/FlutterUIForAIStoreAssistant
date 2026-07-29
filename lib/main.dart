@@ -13,13 +13,11 @@ import 'shared/services/storage_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock orientation to portrait for mobile
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // System UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -27,7 +25,6 @@ void main() async {
     ),
   );
 
-  // Initialize services
   await StorageService.instance.initialize();
   await AuthService.instance.initialize();
   await AppDatabase.instance.ensureSeeded();
@@ -85,8 +82,6 @@ class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
       darkTheme: AppTheme.dark,
       themeMode: _themeMode,
       routerConfig: AppRouter.router,
-
-      // Localization support — Arabic RTL + English
       locale: localeProvider.locale,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -98,7 +93,10 @@ class _AiStoreAssistantAppState extends State<AiStoreAssistantApp> {
         Locale('ar'),
       ],
       builder: (context, child) {
-        return AppTranslations(child: child ?? const SizedBox.shrink());
+        return LocaleInheritedWidget(
+          locale: localeProvider.locale,
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }
