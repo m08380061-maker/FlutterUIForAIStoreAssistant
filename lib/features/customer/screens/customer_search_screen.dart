@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/models/user_model.dart';
 import '../../../shared/repositories/customer_repository.dart';
@@ -49,15 +50,15 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Customer'),
-        content: Text('Delete ${customer.fullName}?'),
+        title: Text(context.tr.deleteCustomer),
+        content: Text('${context.tr.deleteCustomer} ${customer.fullName}?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.tr.cancel)),
           ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(context.tr.delete)),
         ],
       ),
     );
@@ -65,7 +66,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
 
     try {
       await _repository.deleteCustomer(customer.id);
-      _showMessage('Customer removed.');
+      _showMessage(context.tr.customerRemoved);
     } on RepositoryException catch (e) {
       _showMessage(e.message, isError: true);
     }
@@ -94,32 +95,32 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Edit Customer',
+                Text(context.tr.editCustomer,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 CustomTextField(
-                    label: 'Full Name',
+                    label: context.tr.fullName,
                     controller: nameCtrl,
                     validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? 'Required' : null),
+                        (v?.trim().isEmpty ?? true) ? context.tr.required : null),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Phone (optional)',
+                    label: context.tr.phoneOptional,
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Email (optional)',
+                    label: context.tr.emailOptional,
                     controller: emailCtrl,
                     keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Address (optional)',
+                    label: context.tr.addressOptional,
                     controller: addressCtrl,
                     maxLines: 2),
                 const SizedBox(height: 20),
                 CustomButton(
-                    label: 'Save Changes',
+                    label: context.tr.saveChanges,
                     onPressed: () async {
                       if (!(formKey.currentState?.validate() ?? false)) return;
                       try {
@@ -141,7 +142,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         );
                         if (!mounted) return;
                         Navigator.pop(ctx);
-                        _showMessage('Customer updated.');
+                        _showMessage(context.tr.customerUpdated);
                       } on RepositoryException catch (e) {
                         if (!mounted) return;
                         _showMessage(e.message, isError: true);
@@ -177,32 +178,32 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add Customer',
+                Text(context.tr.addCustomer,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 CustomTextField(
-                    label: 'Full Name',
+                    label: context.tr.fullName,
                     controller: nameCtrl,
                     validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? 'Required' : null),
+                        (v?.trim().isEmpty ?? true) ? context.tr.required : null),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Phone (optional)',
+                    label: context.tr.phoneOptional,
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Email (optional)',
+                    label: context.tr.emailOptional,
                     controller: emailCtrl,
                     keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Address (optional)',
+                    label: context.tr.addressOptional,
                     controller: addressCtrl,
                     maxLines: 2),
                 const SizedBox(height: 20),
                 CustomButton(
-                    label: 'Add Customer',
+                    label: context.tr.addCustomer,
                     onPressed: () async {
                       if (!(formKey.currentState?.validate() ?? false)) return;
                       try {
@@ -220,7 +221,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         );
                         if (!mounted) return;
                         Navigator.pop(ctx);
-                        _showMessage('Customer added.');
+                        _showMessage(context.tr.customerAdded);
                       } on RepositoryException catch (e) {
                         if (!mounted) return;
                         _showMessage(e.message, isError: true);
@@ -238,7 +239,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customers'),
+        title: Text(context.tr.customers),
       ),
       body: Column(
         children: [
@@ -247,7 +248,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Search customers...',
+                hintText: context.tr.searchCustomers,
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
@@ -271,7 +272,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        'Error loading customers: ${snapshot.error}',
+                        '${context.tr.errorLoadingCustomers}: ${snapshot.error}',
                         style: const TextStyle(color: AppColors.error),
                         textAlign: TextAlign.center,
                       ),
@@ -295,10 +296,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 if (filtered.isEmpty) {
                   return EmptyState(
                     icon: Icons.person_outline_rounded,
-                    title: 'No customers found',
+                    title: context.tr.noCustomersFound,
                     subtitle: _query.isEmpty
-                        ? 'Add your first customer to get started.'
-                        : 'Try a different search term.',
+                        ? context.tr.addFirstCustomer
+                        : context.tr.tryDifferentSearch,
                   );
                 }
 
@@ -322,7 +323,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.person_add_rounded, color: Colors.white),
         label:
-            const Text('Add Customer', style: TextStyle(color: Colors.white)),
+            Text(context.tr.addCustomer, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
