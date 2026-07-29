@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/models/debt_model.dart';
 import '../../../shared/models/user_model.dart';
@@ -57,6 +58,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
   // ── Add debt ─────────────────────────────────────────────────────────────────
 
   void _showAddDebtDialog() {
+    final tr = context.tr;
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -78,7 +80,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Add Debt',
+                  Text(tr.addDebt,
                       style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 16),
 
@@ -97,28 +99,28 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   const SizedBox(height: 12),
 
                   CustomTextField(
-                      label: 'Amount (YER)',
+                      label: tr.amountYER,
                       hint: '0',
                       controller: amountCtrl,
                       keyboardType: TextInputType.number,
                       validator: (v) {
-                        if (v?.trim().isEmpty ?? true) return 'Required';
+                        if (v?.trim().isEmpty ?? true) return tr.required;
                         if (double.tryParse(v!) == null) {
-                          return 'Must be a number';
+                          return tr.mustBeNumber;
                         }
                         return null;
                       }),
                   const SizedBox(height: 12),
                   CustomTextField(
-                      label: 'Note (optional)',
-                      hint: 'e.g. Grocery purchase',
+                      label: tr.noteOptional,
+                      hint: tr.noteHint,
                       controller: noteCtrl),
                   const SizedBox(height: 20),
                   CustomButton(
-                      label: 'Add Debt',
+                      label: tr.addDebt,
                       onPressed: () async {
                         if (selectedCustomer == null) {
-                          _showMessage('Please select a customer.',
+                          _showMessage(tr.pleaseSelectCustomer,
                               isError: true);
                           return;
                         }
@@ -136,7 +138,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                           );
                           if (!mounted) return;
                           Navigator.pop(ctx);
-                          _showMessage('Debt added.');
+                          _showMessage(tr.debtAdded);
                         } on RepositoryException catch (e) {
                           if (!mounted) return;
                           _showMessage(e.message, isError: true);
@@ -154,6 +156,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
   // ── Edit debt ─────────────────────────────────────────────────────────────────
 
   void _showEditDebt(DebtModel debt) {
+    final tr = context.tr;
     // Pre-fill name from the existing record.
     final nameCtrl = TextEditingController(text: debt.customerName);
     final amountCtrl =
@@ -179,7 +182,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Edit Debt',
+                  Text(tr.editDebt,
                       style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 16),
 
@@ -188,8 +191,8 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   _CustomerSelectorField(
                     selected: selectedCustomer,
                     hint: debt.customerId.isNotEmpty
-                        ? 'Linked — tap to change'
-                        : 'Tap to link a customer',
+                        ? tr.linkedTapToChange
+                        : tr.tapToLinkCustomer,
                     onTap: () async {
                       final customer = await _pickCustomer(ctx);
                       if (customer != null) {
@@ -204,28 +207,28 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   const SizedBox(height: 12),
 
                   CustomTextField(
-                      label: 'Customer Name',
+                      label: tr.customerName,
                       controller: nameCtrl,
                       validator: (v) =>
-                          (v?.trim().isEmpty ?? true) ? 'Required' : null),
+                          (v?.trim().isEmpty ?? true) ? tr.required : null),
                   const SizedBox(height: 12),
                   CustomTextField(
-                      label: 'Amount (YER)',
+                      label: tr.amountYER,
                       controller: amountCtrl,
                       keyboardType: TextInputType.number,
                       validator: (v) {
-                        if (v?.trim().isEmpty ?? true) return 'Required';
+                        if (v?.trim().isEmpty ?? true) return tr.required;
                         if (double.tryParse(v!) == null) {
-                          return 'Must be a number';
+                          return tr.mustBeNumber;
                         }
                         return null;
                       }),
                   const SizedBox(height: 12),
                   CustomTextField(
-                      label: 'Note (optional)', controller: noteCtrl),
+                      label: tr.noteOptional, controller: noteCtrl),
                   const SizedBox(height: 20),
                   CustomButton(
-                      label: 'Save Changes',
+                      label: tr.saveChanges,
                       onPressed: () async {
                         if (!(formKey.currentState?.validate() ?? false)) {
                           return;
@@ -244,7 +247,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                           );
                           if (!mounted) return;
                           Navigator.pop(ctx);
-                          _showMessage('Debt updated.');
+                          _showMessage(tr.debtUpdated);
                         } on RepositoryException catch (e) {
                           if (!mounted) return;
                           _showMessage(e.message, isError: true);
@@ -262,18 +265,19 @@ class _DebtsScreenState extends State<DebtsScreen> {
   // ── Delete debt ───────────────────────────────────────────────────────────────
 
   Future<void> _deleteDebt(DebtModel debt) async {
+    final tr = context.tr;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Debt'),
-        content: Text('Delete debt for ${debt.customerName}?'),
+        title: Text(tr.deleteDebt),
+        content: Text('${tr.deleteDebt} ${debt.customerName}?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(tr.cancel)),
           ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(tr.delete)),
         ],
       ),
     );
@@ -281,7 +285,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
 
     try {
       await _repository.deleteDebt(debt.id);
-      _showMessage('Debt removed.');
+      _showMessage(tr.debtRemoved);
     } on RepositoryException catch (e) {
       _showMessage(e.message, isError: true);
     }
@@ -290,28 +294,29 @@ class _DebtsScreenState extends State<DebtsScreen> {
   // ── Record payment ────────────────────────────────────────────────────────────
 
   void _recordPayment(DebtModel debt) {
+    final tr = context.tr;
     final amountCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Record Payment for ${debt.customerName}'),
+        title: Text('${tr.recordPaymentFor} ${debt.customerName}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Remaining: YER ${debt.remaining.toStringAsFixed(0)}'),
+            Text('${tr.remaining}: ${tr.formatCurrency(debt.remaining)}'),
             const SizedBox(height: 12),
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
               decoration:
-                  const InputDecoration(labelText: 'Payment amount (YER)'),
+                  InputDecoration(labelText: tr.paymentAmount),
             ),
           ],
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              child: Text(tr.cancel)),
           ElevatedButton(
             onPressed: () async {
               final amount = double.tryParse(amountCtrl.text);
@@ -320,14 +325,14 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   await _repository.recordPayment(debt.id, amount);
                   if (!mounted) return;
                   Navigator.pop(ctx);
-                  _showMessage('Payment recorded.');
+                  _showMessage(tr.paymentRecorded);
                 } on RepositoryException catch (e) {
                   if (!mounted) return;
                   _showMessage(e.message, isError: true);
                 }
               }
             },
-            child: const Text('Record'),
+            child: Text(tr.record),
           ),
         ],
       ),
@@ -338,9 +343,10 @@ class _DebtsScreenState extends State<DebtsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Debt Management')),
+      appBar: AppBar(title: Text(tr.debtManagement)),
       body: StreamBuilder<List<DebtModel>>(
         stream: _debtsStream,
         builder: (context, snapshot) {
@@ -349,7 +355,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'Error loading debts: ${snapshot.error}',
+                  '${tr.errorLoadingDebts}: ${snapshot.error}',
                   style: const TextStyle(color: AppColors.error),
                   textAlign: TextAlign.center,
                 ),
@@ -382,17 +388,17 @@ class _DebtsScreenState extends State<DebtsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total Outstanding Debt',
+                        Text(tr.totalOutstandingDebt,
                             style: textTheme.bodySmall
                                 ?.copyWith(color: Colors.white70)),
                         Text(
-                          'YER ${totalDebt.toStringAsFixed(0).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',')}',
+                          tr.formatCurrency(totalDebt),
                           style: textTheme.headlineMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w700),
                         ),
                         Text(
-                            '${debts.where((d) => d.remaining > 0).length} customers with debt',
+                          '${debts.where((d) => d.remaining > 0).length} ${tr.customersWithDebt}',
                             style: textTheme.bodySmall
                                 ?.copyWith(color: Colors.white70)),
                       ],
@@ -408,8 +414,8 @@ class _DebtsScreenState extends State<DebtsScreen> {
                 child: debts.isEmpty
                     ? EmptyState(
                         icon: Icons.people_outline_rounded,
-                        title: 'No debts recorded',
-                        subtitle: 'All customers are paid up.')
+                        title: tr.noDebtsRecorded,
+                        subtitle: tr.allCustomersPaidUp)
                     : ListView.separated(
                         padding: const EdgeInsets.symmetric(
                             horizontal: AppConstants.paddingMD),
@@ -433,7 +439,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
         backgroundColor: AppColors.error,
         icon: const Icon(Icons.person_add_rounded, color: Colors.white),
         label:
-            const Text('Add Debt', style: TextStyle(color: Colors.white)),
+            Text(tr.addDebt, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -458,6 +464,7 @@ class _CustomerSelectorField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final hasSelection = selected != null;
@@ -488,14 +495,14 @@ class _CustomerSelectorField extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Customer',
+                    tr.customer,
                     style:
                         textTheme.labelSmall?.copyWith(color: colorScheme.outline),
                   ),
                   Text(
                     hasSelection
                         ? selected!.fullName
-                        : (hint ?? 'Tap to select customer...'),
+                        : (hint ?? tr.tapToSelectCustomer),
                     style: textTheme.bodyMedium?.copyWith(
                       color: hasSelection ? null : colorScheme.outline,
                     ),
@@ -576,6 +583,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -601,7 +609,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(
               children: [
-                Text('Select Customer', style: textTheme.titleLarge),
+                Text(tr.selectCustomer, style: textTheme.titleLarge),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
@@ -618,7 +626,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               controller: _searchCtrl,
               autofocus: false,
               decoration: InputDecoration(
-                hintText: 'Search by name or phone...',
+                hintText: tr.searchByNameOrPhone,
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
@@ -652,8 +660,8 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                 const SizedBox(height: 12),
                                 Text(
                                   _query.isEmpty
-                                      ? 'No customers yet'
-                                      : 'No matches found',
+                                      ? tr.noCustomersYet
+                                      : tr.noMatchesFound,
                                   style: textTheme.bodyLarge,
                                 ),
                                 if (_query.isEmpty) ...[
@@ -662,7 +670,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 40),
                                     child: Text(
-                                      'Add customers first via the Customers screen.',
+                                      tr.addCustomersFirst,
                                       style: textTheme.bodySmall,
                                       textAlign: TextAlign.center,
                                     ),
@@ -686,7 +694,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                         horizontal: 12, vertical: 4),
                                 leading: CircleAvatar(
                                   backgroundColor: AppColors.primary
-                                      .withValues(alpha: 0.1),
+                                      .withOpacity(0.1),
                                   child: Text(
                                     c.initials,
                                     style: textTheme.labelMedium
@@ -731,6 +739,7 @@ class _DebtTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
     final isPaid = debt.remaining <= 0;
 
@@ -745,7 +754,7 @@ class _DebtTile extends StatelessWidget {
                 radius: 20,
                 backgroundColor:
                     (isPaid ? AppColors.success : AppColors.error)
-                        .withValues(alpha: 0.12),
+                        .withOpacity(0.12),
                 child: Text(
                   debt.customerName.isNotEmpty
                       ? debt.customerName.substring(0, 1).toUpperCase()
@@ -770,10 +779,10 @@ class _DebtTile extends StatelessWidget {
                           Icon(Icons.link_rounded,
                               size: 11,
                               color:
-                                  AppColors.primary.withValues(alpha: 0.7)),
+                                  AppColors.primary.withOpacity(0.7)),
                           const SizedBox(width: 2),
                           Text(
-                            'Linked to customer',
+                            tr.linkedToCustomer,
                             style: textTheme.labelSmall
                                 ?.copyWith(color: AppColors.primary),
                           ),
@@ -791,12 +800,12 @@ class _DebtTile extends StatelessWidget {
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: (isPaid ? AppColors.success : AppColors.error)
-                          .withValues(alpha: 0.1),
+                          .withOpacity(0.1),
                       borderRadius:
                           BorderRadius.circular(AppConstants.radiusFull),
                     ),
                     child: Text(
-                      isPaid ? 'Paid' : 'Unpaid',
+                      isPaid ? tr.paid : tr.unpaid,
                       style: textTheme.labelSmall?.copyWith(
                           color: isPaid
                               ? AppColors.success
@@ -805,7 +814,7 @@ class _DebtTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'YER ${debt.remaining.toStringAsFixed(0)}',
+                    tr.formatCurrency(debt.remaining),
                     style: textTheme.titleSmall?.copyWith(
                         color: isPaid ? AppColors.success : AppColors.error,
                         fontWeight: FontWeight.w700),
@@ -838,7 +847,7 @@ class _DebtTile extends StatelessWidget {
               value: debt.originalAmount > 0
                   ? (debt.totalPaid / debt.originalAmount).clamp(0, 1)
                   : 0,
-              backgroundColor: AppColors.error.withValues(alpha: 0.12),
+              backgroundColor: AppColors.error.withOpacity(0.12),
               valueColor: const AlwaysStoppedAnimation(AppColors.success),
               borderRadius: BorderRadius.circular(AppConstants.radiusFull),
             ),
@@ -846,10 +855,10 @@ class _DebtTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Paid: YER ${debt.totalPaid.toStringAsFixed(0)}',
+                Text('${tr.paidLabel}: ${tr.formatCurrency(debt.totalPaid)}',
                     style: textTheme.bodySmall),
                 Text(
-                    'Original: YER ${debt.originalAmount.toStringAsFixed(0)}',
+                    '${tr.originalLabel}: ${tr.formatCurrency(debt.originalAmount)}',
                     style: textTheme.bodySmall),
               ],
             ),
@@ -863,7 +872,7 @@ class _DebtTile extends StatelessWidget {
                   backgroundColor: AppColors.success,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Record Payment'),
+                child: Text(tr.recordPayment),
               ),
             ),
           ],
@@ -886,7 +895,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: (color ?? AppColors.primary).withValues(alpha: 0.08),
+          color: (color ?? AppColors.primary).withOpacity(0.08),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 16, color: color ?? AppColors.primary),
