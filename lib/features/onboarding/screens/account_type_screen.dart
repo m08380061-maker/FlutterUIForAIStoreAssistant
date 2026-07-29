@@ -44,7 +44,7 @@ List<_AccountOption> _options(BuildContext context) {
     ),
     _AccountOption(
       role: AppConstants.roleCustomer,
-      title: tr.customer,
+      title: tr.customerLabel,
       description: tr.customerDesc,
       icon: Icons.person_rounded,
       color: Color(0xFF7C3AED),

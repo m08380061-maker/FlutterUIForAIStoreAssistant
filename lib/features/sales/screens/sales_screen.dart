@@ -14,7 +14,11 @@ import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_overlay.dart';
 
 class SalesScreen extends StatefulWidget {
-  const SalesScreen({super.key});
+  const SalesScreen({super.key, this.initialCartItems});
+
+  /// Optional cart items passed from the live scanner screen.
+  /// Each map has keys: id, name, unitPrice, quantity.
+  final List<Map<String, dynamic>>? initialCartItems;
 
   @override
   State<SalesScreen> createState() => _SalesScreenState();
@@ -46,6 +50,18 @@ class _SalesScreenState extends State<SalesScreen>
     _tabController = TabController(length: 2, vsync: this);
     _loadProducts();
     _salesStream = _saleRepository.watchRecentSales();
+    // Populate cart from live scanner if items were passed.
+    final initial = widget.initialCartItems;
+    if (initial != null && initial.isNotEmpty) {
+      for (final item in initial) {
+        _cart.add(_CartItem(
+          id: item['id'] as String,
+          name: item['name'] as String,
+          unitPrice: (item['unitPrice'] as num).toDouble(),
+          quantity: (item['quantity'] as num).toInt(),
+        ));
+      }
+    }
   }
 
   @override

@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     switch (widget.role) {
       case AppConstants.roleMerchant: return context.tr.merchant;
       case AppConstants.roleWorker: return context.tr.worker;
-      default: return context.tr.customer;
+      default: return context.tr.customerLabel;
     }
   }
 

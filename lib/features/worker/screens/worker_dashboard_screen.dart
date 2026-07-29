@@ -89,11 +89,11 @@ class WorkerDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _WorkerActionCard(
-              title: tr.scanProduct,
+              title: tr.quickScanCashier,
               description: tr.scanProductDesc,
-              icon: Icons.qr_code_scanner_rounded,
-              color: const Color(0xFF7C3AED),
-              onTap: () => context.push('/scanner'),
+              icon: Icons.document_scanner_rounded,
+              color: const Color(0xFF059669),
+              onTap: () => context.push('/scanner/live'),
             ),
             const SizedBox(height: 12),
             _WorkerActionCard(

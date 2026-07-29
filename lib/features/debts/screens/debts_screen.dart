@@ -495,7 +495,7 @@ class _CustomerSelectorField extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tr.customer,
+                    tr.customerLabel,
                     style:
                         textTheme.labelSmall?.copyWith(color: colorScheme.outline),
                   ),

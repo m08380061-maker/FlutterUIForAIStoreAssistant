@@ -259,6 +259,18 @@ class AppTranslations {
   String get scanModeManual => _s('scanModeManual');
   String get openCamera => _s('openCamera');
   String get saveProduct => _s('saveProduct');
+  String get quickScanCashier => _s('quickScanCashier');
+
+  // ── Live Scanner ──────────────────────────────────────────────────────────
+  String get liveScanTitle => _s('liveScanTitle');
+  String get aimCameraAtProduct => _s('aimCameraAtProduct');
+  String get recognizing => _s('recognizing');
+  String get productFoundLabel => _s('productFoundLabel');
+  String get productNotRecognized => _s('productNotRecognized');
+  String get aimAgain => _s('aimAgain');
+  String get doneScanning => _s('doneScanning');
+  String get scannedItemsCount => _s('scannedItemsCount');
+  String get timesScanned => _s('timesScanned');
 
   // ── Sales ─────────────────────────────────────────────────────────────────
   String get sales => _s('sales');
@@ -311,7 +323,7 @@ class AppTranslations {
   String get customersWithDebt => _s('customersWithDebt');
   String get noDebtsRecorded => _s('noDebtsRecorded');
   String get allCustomersPaidUp => _s('allCustomersPaidUp');
-  String get customer => _s('customer');
+  String get customerLabel => _s('customer');
   String get tapToSelectCustomer => _s('tapToSelectCustomer');
   String get searchByNameOrPhone => _s('searchByNameOrPhone');
   String get noCustomersYet => _s('noCustomersYet');
@@ -610,6 +622,16 @@ const _en = <String, String>{
   'scanModeManual': 'Manual',
   'openCamera': 'Open Camera',
   'saveProduct': 'Save Product',
+  'quickScanCashier': 'Quick Scan',
+  'liveScanTitle': 'Live Scan',
+  'aimCameraAtProduct': 'Aim camera at product',
+  'recognizing': 'Recognizing…',
+  'productFoundLabel': 'Product Found',
+  'productNotRecognized': 'Product not recognized',
+  'aimAgain': 'Aim camera again',
+  'doneScanning': 'Done',
+  'scannedItemsCount': 'scanned',
+  'timesScanned': '×',
   'sales': 'Sales',
   'history': 'History',
   'subtotal': 'Subtotal',
@@ -939,6 +961,16 @@ const _ar = <String, String>{
   'scanModeManual': 'يدوي',
   'openCamera': 'فتح الكاميرا',
   'saveProduct': 'حفظ المنتج',
+  'quickScanCashier': 'مسح سريع',
+  'liveScanTitle': 'المسح الحي',
+  'aimCameraAtProduct': 'وجّه الكاميرا نحو المنتج',
+  'recognizing': 'جارٍ التعرف…',
+  'productFoundLabel': 'تم العثور على المنتج',
+  'productNotRecognized': 'لم يتم التعرف على المنتج',
+  'aimAgain': 'وجّه الكاميرا مرة أخرى',
+  'doneScanning': 'تم',
+  'scannedItemsCount': 'ممسوح',
+  'timesScanned': '×',
   'sales': 'المبيعات',
   'history': 'السجل',
   'subtotal': 'المجموع الفرعي',

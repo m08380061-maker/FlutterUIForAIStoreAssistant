@@ -224,10 +224,10 @@ class _DashboardTabState extends State<_DashboardTab> {
                     ),
                     const SizedBox(width: 12),
                     _QuickAction(
-                      label: tr.scanProduct,
-                      icon: Icons.qr_code_scanner_rounded,
-                      color: const Color(0xFF7C3AED),
-                      onTap: () => context.push('/scanner'),
+                      label: tr.quickScanCashier,
+                      icon: Icons.document_scanner_rounded,
+                      color: const Color(0xFF059669),
+                      onTap: () => context.push('/scanner/live'),
                     ),
                     const SizedBox(width: 12),
                     _QuickAction(
