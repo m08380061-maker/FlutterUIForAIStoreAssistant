@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/repositories/branch_repository.dart';
 import '../../../shared/repositories/repository_exceptions.dart';
@@ -53,11 +54,11 @@ class _BranchesScreenState extends State<BranchesScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add Branch', style: Theme.of(context).textTheme.titleLarge),
+            Text(context.tr.addBranch, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Branch Name', hintText: 'e.g. Downtown Branch')),
+            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: context.tr.branchName, hintText: context.tr.branchNameHint)),
             const SizedBox(height: 12),
-            TextField(controller: addressCtrl, decoration: const InputDecoration(labelText: 'Address', hintText: 'Full address')),
+            TextField(controller: addressCtrl, decoration: InputDecoration(labelText: context.tr.address, hintText: context.tr.addressHint)),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
@@ -74,7 +75,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-              child: const Text('Add Branch'),
+              child: Text(context.tr.addBranch),
             ),
           ],
         ),
@@ -86,18 +87,18 @@ class _BranchesScreenState extends State<BranchesScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Branch Management')),
+      appBar: AppBar(title: Text(context.tr.branchManagement)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _branches.isEmpty
               ? EmptyState(
                   icon: Icons.store_outlined,
-                  title: 'No branches yet',
-                  subtitle: 'Add your first store branch to get started.',
+                  title: context.tr.noBranchesYet,
+                  subtitle: context.tr.addFirstBranch,
                   action: ElevatedButton.icon(
                     onPressed: _showAddBranch,
                     icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Branch'),
+                    label: Text(context.tr.addBranch),
                   ),
                 )
               : ListView.separated(
@@ -121,7 +122,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
         onPressed: _showAddBranch,
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Add Branch', style: TextStyle(color: Colors.white)),
+        label: Text(context.tr.addBranch, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -172,9 +173,9 @@ class _BranchCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _BranchStat(label: "Today's Sales", value: 'YER ${branch.dailySales.toStringAsFixed(0)}'),
+              _BranchStat(label: context.tr.todaySales, value: context.tr.formatCurrency(branch.dailySales)),
               const SizedBox(width: 12),
-              _BranchStat(label: 'Workers', value: '${branch.workerCount}'),
+              _BranchStat(label: context.tr.workers, value: '${branch.workerCount}'),
               const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -183,7 +184,7 @@ class _BranchCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                 ),
                 child: Text(
-                  branch.isActive ? 'Active' : 'Inactive',
+                  branch.isActive ? context.tr.active : context.tr.inactive,
                   style: textTheme.labelSmall?.copyWith(color: branch.isActive ? AppColors.success : AppColors.error),
                 ),
               ),
@@ -212,4 +213,3 @@ class _BranchStat extends StatelessWidget {
     );
   }
 }
-

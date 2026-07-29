@@ -4,6 +4,7 @@ import '../../../shared/services/auth_service.dart';
 import '../../../shared/services/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utilities/app_date_utils.dart';
+import '../../../core/i18n/app_translations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -101,8 +102,8 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'AI Store Assistant',
+                Text(
+                  context.tr.appName,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 26,
@@ -112,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'مساعد المتجر الذكي',
+                  context.tr.appNameArabic,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 16,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/services/auth_service.dart';
 import '../../../shared/widgets/app_card.dart';
@@ -13,12 +14,13 @@ class WorkerDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final user = AuthService.instance.currentUser;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Worker Panel'),
+        title: Text(tr.workerPanel),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -50,9 +52,9 @@ class WorkerDashboardScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(user?.fullName ?? 'Worker', style: textTheme.titleMedium),
+                        Text(user?.fullName ?? tr.workerFallback, style: textTheme.titleMedium),
                         Text(
-                          'Worker • ${user?.storeName ?? 'Store'}',
+                          '${tr.workerFallback} • ${user?.storeName ?? tr.workerStoreFallback}',
                           style: textTheme.bodySmall,
                         ),
                       ],
@@ -65,7 +67,7 @@ class WorkerDashboardScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                     ),
                     child: Text(
-                      'Active',
+                      tr.active,
                       style: textTheme.labelSmall?.copyWith(color: AppColors.success),
                     ),
                   ),
@@ -74,29 +76,29 @@ class WorkerDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            Text('Quick Actions', style: textTheme.titleMedium),
+            Text(tr.quickActions, style: textTheme.titleMedium),
             const SizedBox(height: 12),
 
             // Action cards
             _WorkerActionCard(
-              title: 'Register Sale',
-              description: 'Select products and process a customer sale.',
+              title: tr.registerSale,
+              description: tr.registerSaleDesc,
               icon: Icons.add_shopping_cart_rounded,
               color: AppColors.primary,
               onTap: () => context.push('/sales'),
             ),
             const SizedBox(height: 12),
             _WorkerActionCard(
-              title: 'Scan Product',
-              description: 'Scan barcode or product image to add or look up.',
+              title: tr.scanProduct,
+              description: tr.scanProductDesc,
               icon: Icons.qr_code_scanner_rounded,
               color: const Color(0xFF7C3AED),
               onTap: () => context.push('/scanner'),
             ),
             const SizedBox(height: 12),
             _WorkerActionCard(
-              title: 'Update Stock',
-              description: 'Update product quantities in the inventory.',
+              title: tr.updateStock,
+              description: tr.updateStockDesc,
               icon: Icons.inventory_2_rounded,
               color: const Color(0xFF059669),
               onTap: () => context.push('/inventory'),
@@ -104,7 +106,7 @@ class WorkerDashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Today's summary (no financial data)
-            Text("Today's Activity", style: textTheme.titleMedium),
+            Text(tr.todaysActivity, style: textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -114,7 +116,7 @@ class WorkerDashboardScreen extends StatelessWidget {
                       children: [
                         Text('47', style: textTheme.headlineMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        Text('Sales Processed', style: textTheme.bodySmall),
+                        Text(tr.salesProcessed, style: textTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -126,7 +128,7 @@ class WorkerDashboardScreen extends StatelessWidget {
                       children: [
                         Text('12', style: textTheme.headlineMedium?.copyWith(color: AppColors.warning, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        Text('Items Scanned', style: textTheme.bodySmall),
+                        Text(tr.itemsScanned, style: textTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -150,7 +152,7 @@ class WorkerDashboardScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Worker mode: Profits, analytics, and merchant-only data are not accessible from this account.',
+                      tr.workerNotice,
                       style: textTheme.bodySmall?.copyWith(color: AppColors.info),
                     ),
                   ),

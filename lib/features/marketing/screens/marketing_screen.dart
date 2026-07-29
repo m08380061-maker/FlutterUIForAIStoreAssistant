@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../shared/models/promotion_model.dart';
-import '../../../shared/repositories/promotion_repository.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/loading_overlay.dart';
@@ -33,14 +30,15 @@ class _MarketingScreenState extends State<MarketingScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Marketing'),
+        title: Text(tr.marketing),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Promotions'),
-            Tab(text: 'Customer Messages'),
+          tabs: [
+            Tab(text: tr.promotions),
+            Tab(text: tr.customerMessages),
           ],
         ),
       ),
@@ -63,25 +61,10 @@ class _PromotionsTab extends StatefulWidget {
 }
 
 class _PromotionsTabState extends State<_PromotionsTab> {
-  final _repo = PromotionRepository();
-  List<PromotionModel> _promotions = [];
-  StreamSubscription<List<PromotionModel>>? _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    _sub = _repo.watchPromotions().listen((list) {
-      if (mounted) setState(() => _promotions = list);
-    });
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
+  final List<_Promotion> _promotions = List.from(_demoPromotions);
 
   void _showCreatePromotion() {
+    final tr = context.tr;
     final titleCtrl = TextEditingController();
     final discountCtrl = TextEditingController();
     showModalBottomSheet(
@@ -94,28 +77,29 @@ class _PromotionsTabState extends State<_PromotionsTab> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Create Promotion', style: Theme.of(context).textTheme.titleLarge),
+            Text(tr.createPromotion, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Promotion Title', hintText: 'e.g. Weekend Special')),
+            TextField(controller: titleCtrl, decoration: InputDecoration(labelText: tr.promotionTitle, hintText: tr.promotionTitleHint)),
             const SizedBox(height: 12),
-            TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount %', hintText: '10')),
+            TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: tr.discountPercent, hintText: '10')),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
+              onPressed: () {
                 if (titleCtrl.text.trim().isNotEmpty) {
-                  final discount = discountCtrl.text.trim().isEmpty
-                      ? '0%'
-                      : '${discountCtrl.text.trim()}%';
-                  await _repo.createPromotion(
-                    title: titleCtrl.text.trim(),
-                    discount: discount,
-                    expiresAt: DateTime.now().add(const Duration(days: 7)),
-                  );
-                  if (ctx.mounted) Navigator.pop(ctx);
+                  setState(() {
+                    _promotions.insert(0, _Promotion(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      title: titleCtrl.text.trim(),
+                      discount: '${discountCtrl.text.trim()}%',
+                      isActive: true,
+                      expiresAt: DateTime.now().add(const Duration(days: 7)),
+                    ));
+                  });
+                  Navigator.pop(ctx);
                 }
               },
               style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-              child: const Text('Create Promotion'),
+              child: Text(tr.createPromotion),
             ),
           ],
         ),
@@ -123,50 +107,30 @@ class _PromotionsTabState extends State<_PromotionsTab> {
     );
   }
 
-  Future<void> _deletePromotion(String id) async {
-    await _repo.deletePromotion(id);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return Scaffold(
       body: _promotions.isEmpty
           ? EmptyState(
               icon: Icons.local_offer_outlined,
-              title: 'No promotions yet',
-              subtitle: 'Create your first promotion to attract more customers.',
+              title: tr.noPromotionsYet,
+              subtitle: tr.createFirstPromotion,
             )
           : ListView.separated(
               padding: const EdgeInsets.all(AppConstants.paddingMD),
               itemCount: _promotions.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (ctx, i) {
-                final promo = _promotions[i];
-                return Dismissible(
-                  key: ValueKey(promo.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                    ),
-                    child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
-                  ),
-                  onDismissed: (_) => _deletePromotion(promo.id),
-                  child: _PromotionCard(
-                    promo: promo,
-                    onToggle: () => _repo.togglePromotion(promo.id),
-                  ),
-                );
-              },
+              itemBuilder: (ctx, i) => _PromotionCard(
+                promo: _promotions[i],
+                onToggle: () => setState(() => _promotions[i] = _promotions[i].toggle()),
+              ),
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreatePromotion,
         backgroundColor: AppColors.accentOrange,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Create Promotion', style: TextStyle(color: Colors.white)),
+        label: Text(tr.createPromotion, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -174,11 +138,12 @@ class _PromotionsTabState extends State<_PromotionsTab> {
 
 class _PromotionCard extends StatelessWidget {
   const _PromotionCard({required this.promo, required this.onToggle});
-  final PromotionModel promo;
+  final _Promotion promo;
   final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
     return AppCard(
       child: Row(
@@ -201,7 +166,7 @@ class _PromotionCard extends StatelessWidget {
               children: [
                 Text(promo.title, style: textTheme.titleSmall),
                 Text(
-                  'Expires ${_fmtDate(promo.expiresAt)}',
+                  '${tr.expires} ${_fmtDate(promo.expiresAt)}',
                   style: textTheme.bodySmall,
                 ),
               ],
@@ -233,40 +198,51 @@ class _MessagesTabState extends State<_MessagesTab> {
     super.dispose();
   }
 
+  List<Map<String, String>> _templates(BuildContext context) {
+    final tr = context.tr;
+    return [
+      {'title': tr.weekendSaleTitle, 'body': tr.weekendSaleBody},
+      {'title': tr.newStockTitle, 'body': tr.newStockBody},
+      {'title': tr.loyaltyTitle, 'body': tr.loyaltyBody},
+    ];
+  }
+
   Future<void> _sendMessage() async {
     if (_msgCtrl.text.trim().isEmpty) return;
     setState(() => _sending = true);
     await Future.delayed(const Duration(seconds: 1));
     setState(() { _sending = false; _msgCtrl.clear(); });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Message sent to all customers!'), backgroundColor: AppColors.success),
+      SnackBar(content: Text(context.tr.messageSent), backgroundColor: AppColors.success),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
+    final templates = _templates(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.paddingMD),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Broadcast Message', style: textTheme.titleMedium),
+          Text(tr.broadcastMessage, style: textTheme.titleMedium),
           const SizedBox(height: 12),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Send a message to all your customers', style: textTheme.bodySmall),
+                Text(tr.broadcastDesc, style: textTheme.bodySmall),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _msgCtrl,
                   maxLines: 4,
-                  decoration: const InputDecoration(hintText: 'Type your message here... (e.g. Weekend sale: 20% off all beverages!)'),
+                  decoration: InputDecoration(hintText: tr.broadcastHint),
                 ),
                 const SizedBox(height: 12),
                 CustomButton(
-                  label: _sending ? 'Sending...' : 'Send to All Customers',
+                  label: _sending ? tr.sending : tr.sendToAllCustomers,
                   onPressed: _sending ? null : _sendMessage,
                   isLoading: _sending,
                   leading: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
@@ -275,9 +251,9 @@ class _MessagesTabState extends State<_MessagesTab> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Message Templates', style: textTheme.titleMedium),
+          Text(tr.messageTemplates, style: textTheme.titleMedium),
           const SizedBox(height: 12),
-          ..._templates.map((t) => Padding(
+          ...templates.map((t) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: AppCard(
                   onTap: () => setState(() => _msgCtrl.text = t['body']!),
@@ -304,17 +280,19 @@ class _MessagesTabState extends State<_MessagesTab> {
   }
 }
 
-const _templates = [
-  {
-    'title': 'Weekend Sale',
-    'body': '🎉 Weekend Special! Get 15% off on all beverages and snacks this Friday and Saturday. Visit us now!',
-  },
-  {
-    'title': 'New Stock Arrival',
-    'body': '📦 New stock just arrived! Fresh products, great prices. Come visit your favorite store today.',
-  },
-  {
-    'title': 'Loyalty Appreciation',
-    'body': '❤️ Thank you for being a loyal customer! Enjoy an exclusive 10% discount on your next purchase.',
-  },
+class _Promotion {
+  final String id;
+  final String title;
+  final String discount;
+  final bool isActive;
+  final DateTime expiresAt;
+
+  const _Promotion({required this.id, required this.title, required this.discount, required this.isActive, required this.expiresAt});
+  _Promotion toggle() => _Promotion(id: id, title: title, discount: discount, isActive: !isActive, expiresAt: expiresAt);
+}
+
+final _demoPromotions = [
+  _Promotion(id: '1', title: 'Weekend Special', discount: '15%', isActive: true, expiresAt: DateTime.now().add(const Duration(days: 2))),
+  _Promotion(id: '2', title: 'Bulk Buy Deal', discount: '10%', isActive: true, expiresAt: DateTime.now().add(const Duration(days: 14))),
+  _Promotion(id: '3', title: 'Ramadan Offer', discount: '20%', isActive: false, expiresAt: DateTime.now().subtract(const Duration(days: 30))),
 ];
