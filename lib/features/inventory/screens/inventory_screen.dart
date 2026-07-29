@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/repositories/product_repository.dart';
@@ -55,18 +55,19 @@ class _InventoryScreenState extends State<InventoryScreen>
   }
 
   Future<void> _deleteProduct(ProductModel product) async {
+    final tr = context.tr;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Delete ${product.name}?'),
+        title: Text(tr.deleteProduct),
+        content: Text('${tr.deleteProduct} ${product.name}?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(tr.cancel)),
           ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(tr.delete)),
         ],
       ),
     );
@@ -75,13 +76,14 @@ class _InventoryScreenState extends State<InventoryScreen>
     try {
       await _repository.deleteProduct(product.id);
       // Stream auto-refreshes — just show confirmation.
-      _showMessage('Product removed.');
+      _showMessage(tr.productRemoved);
     } on RepositoryException catch (e) {
       _showMessage(e.message, isError: true);
     }
   }
 
   void _showEditProduct(ProductModel product) {
+    final tr = context.tr;
     final nameCtrl = TextEditingController(text: product.name);
     final categoryCtrl = TextEditingController(text: product.category);
     final purchasePriceCtrl =
@@ -110,67 +112,67 @@ class _InventoryScreenState extends State<InventoryScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Edit Product',
+                Text(tr.editProduct,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 CustomTextField(
-                    label: 'Product Name',
+                    label: tr.productName,
                     controller: nameCtrl,
                     validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? 'Required' : null),
+                        (v?.trim().isEmpty ?? true) ? tr.required : null),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Category',
+                    label: tr.category,
                     controller: categoryCtrl,
                     validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? 'Required' : null),
+                        (v?.trim().isEmpty ?? true) ? tr.required : null),
                 const SizedBox(height: 12),
                 Row(children: [
                   Expanded(
                       child: CustomTextField(
-                          label: 'Purchase Price (YER)',
+                          label: tr.purchasePrice,
                           controller: purchasePriceCtrl,
                           keyboardType: TextInputType.number,
                           validator: (v) =>
                               (double.tryParse(v ?? '') ?? -1) < 0
-                                  ? 'Must be a number'
+                                  ? tr.mustBeNumber
                                   : null)),
                   const SizedBox(width: 12),
                   Expanded(
                       child: CustomTextField(
-                          label: 'Selling Price (YER)',
+                          label: tr.sellingPrice,
                           controller: sellingPriceCtrl,
                           keyboardType: TextInputType.number,
                           validator: (v) =>
                               (double.tryParse(v ?? '') ?? -1) < 0
-                                  ? 'Must be a number'
+                                  ? tr.mustBeNumber
                                   : null)),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
                   Expanded(
                       child: CustomTextField(
-                          label: 'Quantity',
+                          label: tr.quantity,
                           controller: quantityCtrl,
                           keyboardType: TextInputType.number,
                           validator: (v) =>
                               (int.tryParse(v ?? '') ?? -1) < 0
-                                  ? 'Must be a number'
+                                  ? tr.mustBeNumber
                                   : null)),
                   const SizedBox(width: 12),
                   Expanded(
                       child: CustomTextField(
-                          label: 'Barcode (optional)',
+                          label: tr.barcodeOptional,
                           controller: barcodeCtrl)),
                 ]),
                 const SizedBox(height: 12),
                 CustomTextField(
-                    label: 'Description (optional)',
+                    label: tr.descriptionOptional,
                     controller: descriptionCtrl,
                     maxLines: 3),
                 const SizedBox(height: 20),
                 CustomButton(
-                    label: 'Save Changes',
+                    label: tr.saveChanges,
                     onPressed: () async {
                       if (!(formKey.currentState?.validate() ?? false)) return;
                       try {
@@ -191,7 +193,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                         if (!mounted) return;
                         Navigator.pop(ctx);
                         // Stream auto-refreshes — just show confirmation.
-                        _showMessage('Product updated.');
+                        _showMessage(tr.productUpdated);
                       } on RepositoryException catch (e) {
                         if (!mounted) return;
                         _showMessage(e.message, isError: true);
@@ -207,15 +209,16 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventory'),
+        title: Text(tr.inventory),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Low Stock'),
-            Tab(text: 'Out of Stock'),
+          tabs: [
+            Tab(text: tr.all),
+            Tab(text: tr.lowStock),
+            Tab(text: tr.outOfStock),
           ],
         ),
       ),
@@ -226,7 +229,7 @@ class _InventoryScreenState extends State<InventoryScreen>
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Search products...',
+                hintText: tr.searchProducts,
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
@@ -250,7 +253,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        'Error loading products: ${snapshot.error}',
+                        '${tr.errorLoadingProducts}: ${snapshot.error}',
                         style: const TextStyle(color: AppColors.error),
                         textAlign: TextAlign.center,
                       ),
@@ -296,7 +299,7 @@ class _InventoryScreenState extends State<InventoryScreen>
         onPressed: () => context.push('/scanner'),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Add Product', style: TextStyle(color: Colors.white)),
+        label: Text(tr.addProduct, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -317,6 +320,7 @@ class _InventoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final filtered = products.where((product) {
       final matchesQuery = query.isEmpty ||
           product.name.toLowerCase().contains(query.toLowerCase()) ||
@@ -331,12 +335,12 @@ class _InventoryList extends StatelessWidget {
     if (filtered.isEmpty) {
       return EmptyState(
         icon: Icons.inventory_2_outlined,
-        title: 'No products found',
+        title: tr.noProductsFound,
         subtitle: filter == 'low'
-            ? 'No products are running low.'
+            ? tr.noLowStock
             : filter == 'out'
-                ? 'No out-of-stock products.'
-                : 'Add your first product to get started.',
+                ? tr.noOutOfStock
+                : tr.addFirstProduct,
       );
     }
 
@@ -365,6 +369,7 @@ class _ProductRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final textTheme = Theme.of(context).textTheme;
     return AppCard(
       padding: const EdgeInsets.all(12),
@@ -392,7 +397,7 @@ class _ProductRow extends StatelessWidget {
                 Row(
                   children: [
                     _InfoBadge(
-                        label: 'Qty: ${product.quantity}',
+                        label: '${tr.qty}: ${product.quantity}',
                         color: _statusColor),
                     const SizedBox(width: 6),
                     _InfoBadge(label: product.stockStatus, color: _statusColor),
@@ -405,9 +410,7 @@ class _ProductRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                NumberFormat.currency(
-                        locale: 'en_US', symbol: 'YER ', decimalDigits: 0)
-                    .format(product.sellingPrice),
+                tr.formatCurrency(product.sellingPrice),
                 style: textTheme.titleSmall?.copyWith(
                     color: AppColors.primary, fontWeight: FontWeight.w700),
               ),
