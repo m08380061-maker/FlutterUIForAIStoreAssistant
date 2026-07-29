@@ -1,10 +1,6 @@
 /// Unified translation table for the app.
 ///
 /// Usage in widgets:
-///   final t = AppTranslations.of(context);
-///   Text(t.welcome)
-///
-/// Or with the shorthand extension:
 ///   Text(context.tr.welcome)
 ///
 /// To add a new string:
@@ -16,8 +12,7 @@ import 'package:flutter/material.dart';
 
 import '../shared/services/storage_service.dart';
 
-/// Called by [LocaleProvider] when the user changes language.
-/// Rebuilds the whole tree via [MaterialApp.localeResolutionCallback].
+/// Manages the current locale and notifies listeners on change.
 class LocaleProvider extends ChangeNotifier {
   LocaleProvider._() {
     _locale = Locale(StorageService.instance.getLanguage());
@@ -42,22 +37,35 @@ class LocaleProvider extends ChangeNotifier {
   }
 }
 
-/// Extension providing a `context.tr` shorthand for [AppTranslations.of].
+/// InheritedWidget that provides the current locale to descendants.
+class LocaleInheritedWidget extends InheritedWidget {
+  const LocaleInheritedWidget({super.key, required this.locale, required super.child});
+
+  final Locale locale;
+
+  static Locale? of(BuildContext context) {
+    final w = context.dependOnInheritedWidgetOfExactType<LocaleInheritedWidget>();
+    return w?.locale;
+  }
+
+  @override
+  bool updateShouldNotify(LocaleInheritedWidget oldWidget) => locale != oldWidget.locale;
+}
+
+/// Extension providing `context.tr` for translation access.
 extension TrContext on BuildContext {
   AppTranslations get tr => AppTranslations.of(this);
 }
 
-class AppTranslations extends StatelessWidget {
-  const AppTranslations({super.key, required this.child});
-  final Widget child;
+/// Translation lookup class. Created on-the-fly from the current locale.
+class AppTranslations {
+  AppTranslations._(this._lang);
+  final String _lang;
 
   static AppTranslations of(BuildContext context) {
-    final inherited = context.dependOnInheritedWidgetOfExactType<_AppTranslationsInherited>();
-    return AppTranslations._(inherited?.locale.languageCode ?? 'en');
+    final locale = LocaleInheritedWidget.of(context) ?? LocaleProvider.instance.locale;
+    return AppTranslations._(locale.languageCode);
   }
-
-  final String _lang;
-  const AppTranslations._(this._lang);
 
   String _s(String key) {
     final table = _lang == 'ar' ? _ar : _en;
@@ -427,24 +435,6 @@ class AppTranslations extends StatelessWidget {
   String get currency => _s('currency');
   String formatCurrency(double amount) =>
       '$currency ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',')}';
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = LocaleProvider.instance.locale;
-    return _AppTranslationsInherited(
-      locale: locale,
-      child: child,
-    );
-  }
-}
-
-class _AppTranslationsInherited extends InheritedWidget {
-  const _AppTranslationsInherited({required this.locale, required super.child});
-  final Locale locale;
-
-  @override
-  bool updateShouldNotify(_AppTranslationsInherited oldWidget) =>
-      locale != oldWidget.locale;
 }
 
 // ── Translation tables ─────────────────────────────────────────────────────
