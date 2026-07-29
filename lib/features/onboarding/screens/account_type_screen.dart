@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 
@@ -23,32 +23,35 @@ class _AccountOption {
   });
 }
 
-const _options = [
-  _AccountOption(
-    role: AppConstants.roleMerchant,
-    title: AppStrings.merchant,
-    description: AppStrings.merchantDesc,
-    icon: Icons.store_rounded,
-    color: AppColors.primary,
-    features: ['Full analytics & reports', 'Manage all branches', 'View profits & expenses', 'AI business insights'],
-  ),
-  _AccountOption(
-    role: AppConstants.roleWorker,
-    title: AppStrings.worker,
-    description: AppStrings.workerDesc,
-    icon: Icons.badge_rounded,
-    color: Color(0xFF059669),
-    features: ['Scan & add products', 'Register sales', 'Update stock levels', 'No access to private data'],
-  ),
-  _AccountOption(
-    role: AppConstants.roleCustomer,
-    title: AppStrings.customer,
-    description: AppStrings.customerDesc,
-    icon: Icons.person_rounded,
-    color: Color(0xFF7C3AED),
-    features: ['Search by text, image, voice', 'View product prices', 'Check availability', 'AI product assistant'],
-  ),
-];
+List<_AccountOption> _options(BuildContext context) {
+  final tr = context.tr;
+  return [
+    _AccountOption(
+      role: AppConstants.roleMerchant,
+      title: tr.merchant,
+      description: tr.merchantDesc,
+      icon: Icons.store_rounded,
+      color: AppColors.primary,
+      features: [tr.featFullAnalytics, tr.featManageBranches, tr.featViewProfits, tr.featAiInsights],
+    ),
+    _AccountOption(
+      role: AppConstants.roleWorker,
+      title: tr.worker,
+      description: tr.workerDesc,
+      icon: Icons.badge_rounded,
+      color: Color(0xFF059669),
+      features: [tr.featScanAdd, tr.featRegisterSales, tr.featUpdateStock, tr.featNoPrivateData],
+    ),
+    _AccountOption(
+      role: AppConstants.roleCustomer,
+      title: tr.customer,
+      description: tr.customerDesc,
+      icon: Icons.person_rounded,
+      color: Color(0xFF7C3AED),
+      features: [tr.featSearchImage, tr.featViewPrices, tr.featCheckAvailability, tr.featAiProductAssistant],
+    ),
+  ];
+}
 
 class AccountTypeScreen extends StatelessWidget {
   const AccountTypeScreen({super.key});
@@ -56,6 +59,7 @@ class AccountTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final options = _options(context);
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -65,19 +69,19 @@ class AccountTypeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 16),
               Text(
-                AppStrings.selectAccountType,
+                context.tr.selectAccountType,
                 style: textTheme.displaySmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Choose the account type that fits your role in the store.',
+                context.tr.accountTypeSubtitle,
                 style: textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
                 ),
               ),
               const SizedBox(height: 32),
-              ...List.generate(_options.length, (i) {
-                final opt = _options[i];
+              ...List.generate(options.length, (i) {
+                final opt = options[i];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: _AccountCard(option: opt),
@@ -87,7 +91,7 @@ class AccountTypeScreen extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: () => context.go('/login'),
-                  child: const Text('Already have an account? Login'),
+                  child: Text(context.tr.alreadyHaveAccount),
                 ),
               ),
             ],

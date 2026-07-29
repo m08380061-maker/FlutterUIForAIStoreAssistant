@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/services/storage_service.dart';
 import '../../../shared/widgets/custom_button.dart';
@@ -20,26 +20,29 @@ class _OnboardingPage {
   });
 }
 
-const _pages = [
-  _OnboardingPage(
-    title: AppStrings.onboarding1Title,
-    subtitle: AppStrings.onboarding1Subtitle,
-    icon: Icons.inventory_2_rounded,
-    color: AppColors.primary,
-  ),
-  _OnboardingPage(
-    title: AppStrings.onboarding2Title,
-    subtitle: AppStrings.onboarding2Subtitle,
-    icon: Icons.psychology_rounded,
-    color: Color(0xFF7C3AED),
-  ),
-  _OnboardingPage(
-    title: AppStrings.onboarding3Title,
-    subtitle: AppStrings.onboarding3Subtitle,
-    icon: Icons.receipt_long_rounded,
-    color: AppColors.accent,
-  ),
-];
+List<_OnboardingPage> _pages(BuildContext context) {
+  final tr = context.tr;
+  return [
+    _OnboardingPage(
+      title: tr.onboarding1Title,
+      subtitle: tr.onboarding1Subtitle,
+      icon: Icons.inventory_2_rounded,
+      color: AppColors.primary,
+    ),
+    _OnboardingPage(
+      title: tr.onboarding2Title,
+      subtitle: tr.onboarding2Subtitle,
+      icon: Icons.psychology_rounded,
+      color: Color(0xFF7C3AED),
+    ),
+    _OnboardingPage(
+      title: tr.onboarding3Title,
+      subtitle: tr.onboarding3Subtitle,
+      icon: Icons.receipt_long_rounded,
+      color: AppColors.accent,
+    ),
+  ];
+}
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -53,7 +56,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int _currentPage = 0;
 
   void _next() {
-    if (_currentPage < _pages.length - 1) {
+    final pages = _pages(context);
+    if (_currentPage < pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
@@ -77,6 +81,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = _pages(context);
     final size = MediaQuery.sizeOf(context);
     return Scaffold(
       body: SafeArea(
@@ -90,7 +95,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: TextButton(
                   onPressed: _finish,
                   child: Text(
-                    AppStrings.skip,
+                    context.tr.skip,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.outline,
                     ),
@@ -104,8 +109,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (i) => setState(() => _currentPage = i),
-                itemCount: _pages.length,
-                itemBuilder: (ctx, i) => _PageContent(page: _pages[i]),
+                itemCount: pages.length,
+                itemBuilder: (ctx, i) => _PageContent(page: pages[i]),
               ),
             ),
 
@@ -113,7 +118,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _pages.length,
+                pages.length,
                 (i) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -121,7 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: 8,
                   decoration: BoxDecoration(
                     color: i == _currentPage
-                        ? _pages[_currentPage].color
+                        ? pages[_currentPage].color
                         : Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                   ),
@@ -136,11 +141,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppConstants.paddingLG),
               child: CustomButton(
-                label: _currentPage == _pages.length - 1
-                    ? AppStrings.getStarted
-                    : AppStrings.next,
+                label: _currentPage == pages.length - 1
+                    ? context.tr.getStarted
+                    : context.tr.next,
                 onPressed: _next,
-                backgroundColor: _pages[_currentPage].color,
+                backgroundColor: pages[_currentPage].color,
               ),
             ),
             const SizedBox(height: AppConstants.paddingLG),

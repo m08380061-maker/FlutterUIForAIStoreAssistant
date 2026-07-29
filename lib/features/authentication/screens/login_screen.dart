@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utilities/app_validators.dart';
 import '../../../shared/services/auth_service.dart';
@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result.success) {
       _goHome(result.user?.role);
     } else {
-      setState(() => _error = result.errorMessage ?? AppStrings.loginError);
+      setState(() => _error = result.errorMessage ?? context.tr.loginError);
     }
   }
 
@@ -89,10 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(AppStrings.login, style: textTheme.headlineLarge),
+                Text(context.tr.login, style: textTheme.headlineLarge),
                 const SizedBox(height: 8),
                 Text(
-                  'Welcome back! Sign in to manage your store.',
+                  context.tr.loginSubtitle,
                   style: textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -125,8 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
 
                 CustomTextField(
-                  label: AppStrings.email,
-                  hint: 'you@example.com',
+                  label: context.tr.email,
+                  hint: context.tr.emailHint,
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -135,8 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
-                  label: AppStrings.password,
-                  hint: '••••••••',
+                  label: context.tr.password,
+                  hint: context.tr.passwordHint,
                   controller: _passCtrl,
                   obscureText: true,
                   textInputAction: TextInputAction.done,
@@ -149,12 +149,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {},
-                    child: const Text(AppStrings.forgotPassword),
+                    child: Text(context.tr.forgotPassword),
                   ),
                 ),
                 const SizedBox(height: 8),
                 CustomButton(
-                  label: AppStrings.login,
+                  label: context.tr.login,
                   onPressed: _submit,
                   isLoading: _loading,
                 ),
@@ -163,12 +163,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account?",
+                      context.tr.noAccount,
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(
                       onPressed: () => context.go('/account-type'),
-                      child: const Text(AppStrings.register),
+                      child: Text(context.tr.register),
                     ),
                   ],
                 ),

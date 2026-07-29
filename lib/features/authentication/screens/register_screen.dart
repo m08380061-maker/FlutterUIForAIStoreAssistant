@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utilities/app_validators.dart';
 import '../../../shared/services/auth_service.dart';
@@ -37,11 +37,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  String get _roleLabel {
+  String _roleLabel(BuildContext context) {
     switch (widget.role) {
-      case AppConstants.roleMerchant: return AppStrings.merchant;
-      case AppConstants.roleWorker: return AppStrings.worker;
-      default: return AppStrings.customer;
+      case AppConstants.roleMerchant: return context.tr.merchant;
+      case AppConstants.roleWorker: return context.tr.worker;
+      default: return context.tr.customer;
     }
   }
 
@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result.success) {
       _goHome();
     } else {
-      setState(() => _error = result.errorMessage ?? 'Registration failed. Please try again.');
+      setState(() => _error = result.errorMessage ?? context.tr.registrationFailed);
     }
   }
 
@@ -90,10 +90,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final roleLabel = _roleLabel(context);
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.go('/account-type')),
-        title: Text('Create $_roleLabel Account'),
+        title: Text('${context.tr.createAccount} - $roleLabel'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.paddingLG),
@@ -114,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Icon(_roleIcon, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
-                    Text(_roleLabel, style: textTheme.labelMedium?.copyWith(color: AppColors.primary)),
+                    Text(roleLabel, style: textTheme.labelMedium?.copyWith(color: AppColors.primary)),
                   ],
                 ),
               ),
@@ -134,17 +135,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
 
               CustomTextField(
-                label: AppStrings.fullName,
-                hint: 'Your full name',
+                label: context.tr.yourFullName,
+                hint: context.tr.yourFullName,
                 controller: _nameCtrl,
                 prefixIcon: const Icon(Icons.person_outlined),
                 textInputAction: TextInputAction.next,
-                validator: (v) => AppValidators.required(v, 'Full name'),
+                validator: (v) => AppValidators.required(v, context.tr.yourFullName),
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                label: AppStrings.email,
-                hint: 'you@example.com',
+                label: context.tr.email,
+                hint: context.tr.emailHint,
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
@@ -153,8 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                label: AppStrings.phone,
-                hint: '+967 700 000 000',
+                label: context.tr.phone,
+                hint: context.tr.phoneHint,
                 controller: _phoneCtrl,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
@@ -164,18 +165,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
               if (_isMerchant) ...[
                 const SizedBox(height: 16),
                 CustomTextField(
-                  label: AppStrings.storeName,
-                  hint: 'Your store name',
+                  label: context.tr.storeName,
+                  hint: context.tr.yourStoreName,
                   controller: _storeCtrl,
                   prefixIcon: const Icon(Icons.store_outlined),
                   textInputAction: TextInputAction.next,
-                  validator: (v) => AppValidators.required(v, 'Store name'),
+                  validator: (v) => AppValidators.required(v, context.tr.storeName),
                 ),
               ],
               const SizedBox(height: 16),
               CustomTextField(
-                label: AppStrings.password,
-                hint: '••••••••',
+                label: context.tr.password,
+                hint: context.tr.passwordHint,
                 controller: _passCtrl,
                 obscureText: true,
                 textInputAction: TextInputAction.next,
@@ -184,8 +185,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                label: AppStrings.confirmPassword,
-                hint: '••••••••',
+                label: context.tr.confirmPassword,
+                hint: context.tr.passwordHint,
                 controller: _confirmCtrl,
                 obscureText: true,
                 textInputAction: TextInputAction.done,
@@ -195,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 32),
               CustomButton(
-                label: AppStrings.register,
+                label: context.tr.register,
                 onPressed: _submit,
                 isLoading: _loading,
               ),
@@ -203,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => context.go('/login'),
-                  child: const Text('Already have an account? Login'),
+                  child: Text(context.tr.alreadyHaveAccount),
                 ),
               ),
             ],
