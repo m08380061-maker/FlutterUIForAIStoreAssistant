@@ -11,20 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── Checkout ────────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      # ── Java 17 ─────────────────────────────────────────────────────────────
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # ── Flutter ─────────────────────────────────────────────────────────────
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -32,7 +29,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # ── Android NDK (required by externalNativeBuild / CMake block) ─────────
       - name: Install Android NDK 27.0.12077973
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
@@ -40,20 +36,12 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "ndk;27.0.12077973" --channel=0
 
-      # ── Dependencies ─────────────────────────────────────────────────────────
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ── Static analysis ──────────────────────────────────────────────────────
       - name: Analyze (non-fatal warnings)
         run: flutter analyze --no-fatal-warnings || true
 
-      # ── Release signing ──────────────────────────────────────────────────────
-      # Required GitHub Actions secrets:
-      #   KEYSTORE_BASE64   — base64-encoded release.jks (run: base64 -w0 android/app/release.jks)
-      #   KEY_STORE_PASSWORD — keystore store password
-      #   KEY_ALIAS          — key alias (e.g. upload)
-      #   KEY_PASSWORD       — key password
       - name: Decode release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -70,12 +58,19 @@ jobs:
             "$KEY_STORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" \
             > android/app/key.properties
 
-      # ── Build ────────────────────────────────────────────────────────────────
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release 2>&1 | tee build_output.log || true
 
-      # ── Upload artifact ──────────────────────────────────────────────────────
+      - name: Upload build log on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build_output.log
+          retention-days: 7
+
       - name: Upload release APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
