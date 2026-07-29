@@ -59,10 +59,15 @@ jobs:
             > android/app/key.properties
 
       - name: Build release APK
-        run: flutter build apk --release 2>&1 | tee build_output.log || true
+        run: |
+          set +e
+          flutter build apk --release 2>&1 | tee build_output.log
+          EXIT_CODE=$?
+          echo "BUILD_EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
+          exit $EXIT_CODE
 
       - name: Upload build log on failure
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
