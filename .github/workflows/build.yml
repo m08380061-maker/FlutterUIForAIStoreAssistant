@@ -60,11 +60,8 @@ jobs:
 
       - name: Build release APK
         run: |
-          set +e
+          set -o pipefail
           flutter build apk --release 2>&1 | tee build_output.log
-          EXIT_CODE=$?
-          echo "BUILD_EXIT_CODE=$EXIT_CODE" >> $GITHUB_ENV
-          exit $EXIT_CODE
 
       - name: Upload build log on failure
         if: failure()
@@ -74,10 +71,21 @@ jobs:
           path: build_output.log
           retention-days: 7
 
+      - name: Verify APK exists
+        run: |
+          echo "=== flutter-apk output directory ==="
+          ls -R build/app/outputs/flutter-apk || true
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "ERROR: APK not found at $APK_PATH — build step must have failed silently."
+            exit 1
+          fi
+          echo "APK found: $(du -sh $APK_PATH)"
+
       - name: Upload release APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+          if-no-files-found: error
