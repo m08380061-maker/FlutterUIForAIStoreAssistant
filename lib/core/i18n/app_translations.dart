@@ -10,7 +10,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../shared/services/storage_service.dart';
+import '../../shared/services/storage_service.dart';
 
 /// Manages the current locale and notifies listeners on change.
 class LocaleProvider extends ChangeNotifier {
@@ -20,7 +20,7 @@ class LocaleProvider extends ChangeNotifier {
 
   static final LocaleProvider instance = LocaleProvider._();
 
-  Locale _locale;
+  late Locale _locale;
   Locale get locale => _locale;
   bool get isRTL => _locale.languageCode == 'ar';
 
@@ -142,7 +142,7 @@ class AppTranslations {
   String get accountTypeSubtitle => _s('accountTypeSubtitle');
   String get merchant => _s('merchant');
   String get worker => _s('worker');
-  String get customer => _s('customer');
+  String get customer => _s('customerRole');
   String get merchantDesc => _s('merchantDesc');
   String get workerDesc => _s('workerDesc');
   String get customerDesc => _s('customerDesc');
@@ -535,7 +535,7 @@ const _en = <String, String>{
   'accountTypeSubtitle': 'Choose the account type that fits your role in the store.',
   'merchant': 'Merchant',
   'worker': 'Worker',
-  'customer': 'Customer',
+  'customerRole': 'Customer',
   'merchantDesc': 'Full store management & analytics',
   'workerDesc': 'Scan, sell, and update stock',
   'customerDesc': 'Search products & check prices',
@@ -890,7 +890,7 @@ const _ar = <String, String>{
   'accountTypeSubtitle': 'اختر نوع الحساب الذي يناسب دورك في المتجر.',
   'merchant': 'تاجر',
   'worker': 'عامل',
-  'customer': 'عميل',
+  'customerRole': 'عميل',
   'merchantDesc': 'إدارة كاملة للمتجر والتحليلات',
   'workerDesc': 'مسح، بيع، وتحديث المخزون',
   'customerDesc': 'البحث عن المنتجات ومعرفة الأسعار',

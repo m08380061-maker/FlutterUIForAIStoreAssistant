@@ -7,6 +7,29 @@ import '../../shared/models/sale_model.dart';
 import 'product_repository.dart';
 import 'repository_exceptions.dart';
 
+/// Data class for daily revenue/profit chart data.
+class DailyRevenueProfit {
+  final DateTime date;
+  final double revenue;
+  final double profit;
+  const DailyRevenueProfit({required this.date, required this.revenue, required this.profit});
+}
+
+/// Data class for best-selling product entries.
+class BestSellerEntry {
+  final String productName;
+  final double revenue;
+  final int units;
+  const BestSellerEntry({required this.productName, required this.revenue, required this.units});
+}
+
+/// Data class for category breakdown pie chart.
+class CategoryShare {
+  final String category;
+  final double percentage;
+  const CategoryShare({required this.category, required this.percentage});
+}
+
 class SaleRepository {
   final AppDatabase _db = AppDatabase.instance;
   final ProductRepository _products = ProductRepository();
@@ -346,6 +369,51 @@ class SaleRepository {
     } catch (e) {
       throw DatabaseException('Unable to load daily series: $e');
     }
+  }
+
+  // ── Reactive stream helpers for analytics UI ──────────────────────────────
+
+  /// Reactive stream of daily revenue/profit for the last [days] days.
+  Stream<List<DailyRevenueProfit>> watchDailyRevenueProfit({required int days}) {
+    return _db.select(_db.sales).watch().asyncMap((_) async {
+      final now = DateTime.now();
+      final result = <DailyRevenueProfit>[];
+      for (int i = days - 1; i >= 0; i--) {
+        final day = DateTime(now.year, now.month, now.day - i);
+        final dayEnd = day.add(const Duration(days: 1));
+        final rev = await getRevenueForPeriod(day, dayEnd);
+        final prof = await getProfitForPeriod(day, dayEnd);
+        result.add(DailyRevenueProfit(date: day, revenue: rev, profit: prof));
+      }
+      return result;
+    });
+  }
+
+  /// Reactive stream of best-selling products for the last [days] days.
+  Stream<List<BestSellerEntry>> watchBestSellers({required int days, int limit = 5}) {
+    return _db.select(_db.sales).watch().asyncMap((_) async {
+      final now = DateTime.now();
+      final from = DateTime(now.year, now.month, now.day - days);
+      final raw = await getBestSellersForPeriod(from, now, limit: limit);
+      return raw.map((e) => BestSellerEntry(
+        productName: e['name'] as String,
+        revenue: e['revenue'] as double,
+        units: e['units'] as int,
+      )).toList();
+    });
+  }
+
+  /// Reactive stream of sales category breakdown for the last [days] days.
+  Stream<List<CategoryShare>> watchCategoryBreakdown({required int days}) {
+    return _db.select(_db.sales).watch().asyncMap((_) async {
+      final now = DateTime.now();
+      final from = DateTime(now.year, now.month, now.day - days);
+      final raw = await getCategoryBreakdownForPeriod(from, now);
+      return raw.map((e) => CategoryShare(
+        category: e['label'] as String,
+        percentage: e['pct'] as double,
+      )).toList();
+    });
   }
 
   /// Returns sales grouped by product category for the period [from, to).
