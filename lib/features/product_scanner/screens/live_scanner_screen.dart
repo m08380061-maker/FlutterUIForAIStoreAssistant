@@ -206,7 +206,6 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   // ── Navigation ───────────────────────────────────────────────────────────────
 
   void _goToInvoice() {
-    _scanTimer?.cancel();
     _statusResetTimer?.cancel();
     // Navigate to InvoiceScreen with scanned items.
     context.go('/invoice', extra: {
