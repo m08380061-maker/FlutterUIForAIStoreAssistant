@@ -219,8 +219,8 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   void _goToInvoice() {
     _scanTimer?.cancel();
     _statusResetTimer?.cancel();
-    // Pass scanned items to SalesScreen as router extra.
-    context.go('/sales', extra: {
+    // Navigate to InvoiceScreen with scanned items.
+    context.go('/invoice', extra: {
       'cartItems': _cart.map((c) => c.toMap()).toList(),
     });
   }

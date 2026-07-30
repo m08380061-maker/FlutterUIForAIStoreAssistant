@@ -51,15 +51,12 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _goHome(String? role) {
-    switch (role) {
-      case 'merchant':
-        context.go('/merchant/dashboard');
-      case 'worker':
-        context.go('/worker/dashboard');
-      case 'customer':
-        context.go('/customer/search');
-      default:
-        context.go('/account-type');
+    // All authenticated roles land on the AI chat hub.
+    // Role-specific dashboards are accessible via the drawer and + menu.
+    if (role != null) {
+      context.go('/ai-assistant');
+    } else {
+      context.go('/account-type');
     }
   }
 

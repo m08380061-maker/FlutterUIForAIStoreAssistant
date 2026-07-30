@@ -272,6 +272,26 @@ class AppTranslations {
   String get scannedItemsCount => _s('scannedItemsCount');
   String get timesScanned => _s('timesScanned');
 
+  // ── Invoice ───────────────────────────────────────────────────────────────
+  String get instantInvoice => _s('instantInvoice');
+  String get completeSale => _s('completeSale');
+  String get electronicPayment => _s('electronicPayment');
+  String get scanMore => _s('scanMore');
+  String get invoiceEmpty => _s('invoiceEmpty');
+  String get saleConfirmedMsg => _s('saleConfirmedMsg');
+  String get paymentQRHint => _s('paymentQRHint');
+  String get confirmPayment => _s('confirmPayment');
+
+  // ── Home / Chat ───────────────────────────────────────────────────────────
+  String get homeSubtitle => _s('homeSubtitle');
+  String get capabilityInventory => _s('capabilityInventory');
+  String get capabilitySales => _s('capabilitySales');
+  String get capabilityInsights => _s('capabilityInsights');
+  String get capabilityScan => _s('capabilityScan');
+  String get chatHistory => _s('chatHistory');
+  String get newChat => _s('newChat');
+  String get noChatsYet => _s('noChatsYet');
+
   // ── Sales ─────────────────────────────────────────────────────────────────
   String get sales => _s('sales');
   String get history => _s('history');
@@ -632,6 +652,22 @@ const _en = <String, String>{
   'doneScanning': 'Done',
   'scannedItemsCount': 'scanned',
   'timesScanned': '×',
+  'instantInvoice': 'Invoice',
+  'completeSale': 'Complete Sale',
+  'electronicPayment': 'Electronic Payment',
+  'scanMore': 'Scan More',
+  'invoiceEmpty': 'Invoice is empty',
+  'saleConfirmedMsg': 'Sale saved successfully!',
+  'paymentQRHint': 'Show this to the customer',
+  'confirmPayment': 'Confirm Receipt',
+  'homeSubtitle': 'Ask anything about your store',
+  'capabilityInventory': 'Track inventory',
+  'capabilitySales': 'Register sales',
+  'capabilityInsights': 'Smart reports',
+  'capabilityScan': 'Scan products',
+  'chatHistory': 'Conversations',
+  'newChat': 'Current Session',
+  'noChatsYet': 'No previous sessions',
   'sales': 'Sales',
   'history': 'History',
   'subtotal': 'Subtotal',
@@ -971,6 +1007,22 @@ const _ar = <String, String>{
   'doneScanning': 'تم',
   'scannedItemsCount': 'ممسوح',
   'timesScanned': '×',
+  'instantInvoice': 'الفاتورة',
+  'completeSale': 'تم البيع',
+  'electronicPayment': 'الدفع الإلكتروني',
+  'scanMore': 'مسح المزيد',
+  'invoiceEmpty': 'الفاتورة فارغة',
+  'saleConfirmedMsg': 'تم حفظ البيع بنجاح!',
+  'paymentQRHint': 'اعرض هذا للعميل',
+  'confirmPayment': 'تأكيد الاستلام',
+  'homeSubtitle': 'اسألني عن متجرك',
+  'capabilityInventory': 'تتبع المخزون',
+  'capabilitySales': 'تسجيل المبيعات',
+  'capabilityInsights': 'تقارير ذكية',
+  'capabilityScan': 'مسح المنتجات',
+  'chatHistory': 'المحادثات',
+  'newChat': 'الجلسة الحالية',
+  'noChatsYet': 'لا جلسات سابقة',
   'sales': 'المبيعات',
   'history': 'السجل',
   'subtotal': 'المجموع الفرعي',

@@ -11,6 +11,7 @@ import '../../features/customer/screens/customer_search_screen.dart';
 import '../../features/inventory/screens/inventory_screen.dart';
 import '../../features/product_scanner/screens/scanner_screen.dart';
 import '../../features/product_scanner/screens/live_scanner_screen.dart';
+import '../../features/sales/screens/invoice_screen.dart';
 import '../../features/sales/screens/sales_screen.dart';
 import '../../features/debts/screens/debts_screen.dart';
 import '../../features/analytics/screens/analytics_screen.dart';
@@ -85,6 +86,18 @@ class AppRouter {
       GoRoute(
         path: '/scanner/live',
         builder: (context, state) => const LiveScannerScreen(),
+      ),
+      GoRoute(
+        path: '/invoice',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final rawItems = extra?['cartItems'] as List<dynamic>?;
+          final items = rawItems
+                  ?.map((e) => e as Map<String, dynamic>)
+                  .toList() ??
+              [];
+          return InvoiceScreen(initialItems: items);
+        },
       ),
       GoRoute(
         path: '/sales',
