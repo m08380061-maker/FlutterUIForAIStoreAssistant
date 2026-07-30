@@ -59,6 +59,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
 
   void _showAddDebtDialog() {
     final tr = context.tr;
+    final customerNameCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -84,13 +85,28 @@ class _DebtsScreenState extends State<DebtsScreen> {
                       style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 16),
 
-                  // Customer picker — required for new debts
+                  // Customer name — primary required field
+                  CustomTextField(
+                    label: tr.customerName,
+                    hint: tr.tapToSelectCustomer,
+                    controller: customerNameCtrl,
+                    textInputAction: TextInputAction.next,
+                    validator: (v) =>
+                        (v?.trim().isEmpty ?? true) ? tr.required : null,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Customer picker — optional; auto-fills name when chosen
                   _CustomerSelectorField(
                     selected: selectedCustomer,
+                    hint: tr.tapToLinkCustomer,
                     onTap: () async {
                       final customer = await _pickCustomer(ctx);
                       if (customer != null) {
-                        setSheetState(() => selectedCustomer = customer);
+                        setSheetState(() {
+                          selectedCustomer = customer;
+                          customerNameCtrl.text = customer.fullName;
+                        });
                       }
                     },
                     onClear: () =>
@@ -119,18 +135,13 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   CustomButton(
                       label: tr.addDebt,
                       onPressed: () async {
-                        if (selectedCustomer == null) {
-                          _showMessage(tr.pleaseSelectCustomer,
-                              isError: true);
-                          return;
-                        }
                         if (!(formKey.currentState?.validate() ?? false)) {
                           return;
                         }
                         try {
                           await _repository.createDebt(
-                            customerId: selectedCustomer!.id,
-                            customerName: selectedCustomer!.fullName,
+                            customerId: selectedCustomer?.id,
+                            customerName: customerNameCtrl.text.trim(),
                             amount: double.parse(amountCtrl.text),
                             note: noteCtrl.text.trim().isEmpty
                                 ? null

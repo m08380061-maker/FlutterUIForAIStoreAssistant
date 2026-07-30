@@ -61,8 +61,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
     if (text.trim().isEmpty || _loading) return;
     _inputCtrl.clear();
     setState(() => _loading = true);
-    await _ai.sendMessage(text.trim());
-    if (mounted) setState(() => _loading = false);
+    final msg = await _ai.sendMessage(text.trim());
+    if (mounted) {
+      setState(() => _loading = false);
+      // Execute in-app navigation commands resolved by the AI router.
+      if (msg.navRoute != null) {
+        context.push(msg.navRoute!);
+      }
+    }
     _scrollToBottom();
   }
 

@@ -19,6 +19,8 @@ class AiMessage {
   final AiRole role;
   final DateTime timestamp;
   final bool isError;
+  /// Non-null when the AI resolved a navigation command (e.g. '/scanner/live').
+  final String? navRoute;
 
   const AiMessage({
     required this.id,
@@ -26,6 +28,7 @@ class AiMessage {
     required this.role,
     required this.timestamp,
     this.isError = false,
+    this.navRoute,
   });
 
   AiMessage copyWith({String? text, bool? isError}) => AiMessage(
@@ -34,6 +37,7 @@ class AiMessage {
         role: role,
         timestamp: timestamp,
         isError: isError ?? this.isError,
+        navRoute: navRoute,
       );
 }
 
@@ -78,13 +82,14 @@ class AiService {
     _history.add(userMsg);
 
     try {
-      final replyText = await AiCommandRouter.instance.route(userText, isArabic: _isArabic);
+      final result = await AiCommandRouter.instance.route(userText, isArabic: _isArabic);
 
       final assistantMsg = AiMessage(
         id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
-        text: replyText,
+        text: result.text,
         role: AiRole.assistant,
         timestamp: DateTime.now(),
+        navRoute: result.navRoute,
       );
       _history.add(assistantMsg);
       return assistantMsg;

@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/i18n/app_translations.dart';
@@ -62,8 +62,9 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   ProductModel? _lastScanned;
   DateTime? _lastScanTime;
 
-  Timer? _scanTimer;
   Timer? _statusResetTimer;
+  late final MobileScannerController _controller;
+  bool _cameraStarted = false;
 
   late final AnimationController _frameAnimCtrl;
   late final AnimationController _overlayAnimCtrl;
@@ -71,7 +72,6 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   late final Animation<double> _overlayAnim;
 
   bool _isLoading = true;
-  final Random _random = Random();
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
@@ -98,13 +98,14 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       curve: Curves.easeOut,
     );
 
+    _controller = MobileScannerController();
     _loadProducts();
   }
 
   @override
   void dispose() {
-    _scanTimer?.cancel();
     _statusResetTimer?.cancel();
+    _controller.dispose();
     _frameAnimCtrl.dispose();
     _overlayAnimCtrl.dispose();
     super.dispose();
@@ -120,81 +121,69 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
         _products = products;
         _isLoading = false;
       });
-      _startScanLoop();
     } on RepositoryException catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ── Scanning loop ───────────────────────────────────────────────────────────
+  // ── Camera & scanning ────────────────────────────────────────────────────────
 
-  void _startScanLoop() {
-    // Every 2.5 s the scanner "sees" something and tries to recognise it.
-    // TODO: Replace this timer with a real MobileScanner frame callback when
-    //       running on a physical device with `mobile_scanner` integrated.
-    _scanTimer = Timer.periodic(const Duration(milliseconds: 2500), (_) {
-      if (_status == _ScanStatus.idle && mounted) {
-        _triggerRecognition();
-      }
-    });
+  void _startCamera() {
+    setState(() => _cameraStarted = true);
   }
 
-  void _triggerRecognition() {
-    if (_products.isEmpty) {
-      // No products in DB yet — show not-found instead of crashing.
-      setState(() => _status = _ScanStatus.notFound);
-      _statusResetTimer?.cancel();
-      _statusResetTimer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted) setState(() => _status = _ScanStatus.idle);
-      });
-      return;
-    }
+  /// Called by [MobileScanner] when a barcode frame is detected.
+  void _onBarcodeDetected(BarcodeCapture capture) {
+    if (_status != _ScanStatus.idle || !mounted) return;
+    final value = capture.barcodes.firstOrNull?.rawValue;
+    if (value == null || value.isEmpty) return;
 
     setState(() => _status = _ScanStatus.recognizing);
 
-    // Simulate a recognition delay of 0.7–1.2 s.
-    final delayMs = 700 + _random.nextInt(500);
-    Future.delayed(Duration(milliseconds: delayMs), () {
-      if (!mounted) return;
-
-      // 72% success rate when products exist.
-      final success = _random.nextDouble() < 0.72;
-
-      if (success) {
-        final product = _products[_random.nextInt(_products.length)];
-
-        // Debounce: skip if exactly the same product was detected < 2 s ago.
-        final now = DateTime.now();
-        if (_lastScanned?.id == product.id &&
-            _lastScanTime != null &&
-            now.difference(_lastScanTime!) < const Duration(seconds: 2)) {
-          setState(() => _status = _ScanStatus.idle);
-          return;
-        }
-
-        _lastScanned = product;
-        _lastScanTime = now;
-        _addToCart(product);
-
-        setState(() => _status = _ScanStatus.found);
-        _overlayAnimCtrl.forward(from: 0);
-
-        // Auto-hide the overlay after 1.2 s, then resume scanning.
-        _statusResetTimer?.cancel();
-        _statusResetTimer = Timer(const Duration(milliseconds: 1200), () {
-          if (mounted) {
-            _overlayAnimCtrl.reverse();
-            setState(() => _status = _ScanStatus.idle);
-          }
-        });
-      } else {
-        setState(() => _status = _ScanStatus.notFound);
-        _statusResetTimer?.cancel();
-        _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
-          if (mounted) setState(() => _status = _ScanStatus.idle);
-        });
+    final product = _findByBarcode(value);
+    if (product != null) {
+      // Debounce: skip the same product scanned within 2 seconds.
+      final now = DateTime.now();
+      if (_lastScanned?.id == product.id &&
+          _lastScanTime != null &&
+          now.difference(_lastScanTime!) < const Duration(seconds: 2)) {
+        setState(() => _status = _ScanStatus.idle);
+        return;
       }
-    });
+
+      _lastScanned = product;
+      _lastScanTime = now;
+      _addToCart(product);
+
+      setState(() => _status = _ScanStatus.found);
+      _overlayAnimCtrl.forward(from: 0);
+
+      _statusResetTimer?.cancel();
+      _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          _overlayAnimCtrl.reverse();
+          setState(() => _status = _ScanStatus.idle);
+        }
+      });
+    } else {
+      setState(() => _status = _ScanStatus.notFound);
+      _statusResetTimer?.cancel();
+      _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (mounted) setState(() => _status = _ScanStatus.idle);
+      });
+    }
+  }
+
+  /// Returns the first product whose barcode matches [value], or null.
+  ProductModel? _findByBarcode(String value) {
+    final normalized = value.trim().toLowerCase();
+    try {
+      return _products.firstWhere(
+        (p) => (p.barcode?.trim().toLowerCase() ?? '') == normalized,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── Cart helpers ─────────────────────────────────────────────────────────────
@@ -235,8 +224,16 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Simulated camera feed ──────────────────────────────────────────
-          const _CameraBackground(),
+          // ── Real camera feed (MobileScanner) or placeholder ───────────────
+          if (_cameraStarted)
+            Positioned.fill(
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _onBarcodeDetected,
+              ),
+            )
+          else
+            const _CameraBackground(),
 
           // ── Scan frame (center) ───────────────────────────────────────────
           Center(
@@ -329,7 +326,7 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
               ),
             ),
 
-          // ── Bottom bar (cart summary + Done button) ────────────────────────
+          // ── Bottom bar ────────────────────────────────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -346,34 +343,54 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
                     ],
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _cart.isEmpty ? null : _goToInvoice,
-                        icon: const Icon(Icons.receipt_long_rounded),
-                        label: Text(
-                          _cart.isEmpty
-                              ? tr.aimCameraAtProduct
-                              : '${tr.doneScanning}  ·  $_totalItems ${tr.items}',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _cart.isEmpty
-                              ? Colors.white24
-                              : AppColors.success,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.white24,
-                          disabledForegroundColor: Colors.white54,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppConstants.radiusMedium),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
+                      child: !_cameraStarted
+                          ? ElevatedButton.icon(
+                              onPressed: _isLoading ? null : _startCamera,
+                              icon: const Icon(Icons.videocam_rounded),
+                              label: Text(tr.openCamera),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppConstants.radiusMedium),
+                                ),
+                                elevation: 0,
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: _cart.isEmpty ? null : _goToInvoice,
+                              icon: const Icon(Icons.receipt_long_rounded),
+                              label: Text(
+                                _cart.isEmpty
+                                    ? tr.aimCameraAtProduct
+                                    : '${tr.doneScanning}  ·  $_totalItems ${tr.items}',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _cart.isEmpty
+                                    ? Colors.white24
+                                    : AppColors.success,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.white24,
+                                disabledForegroundColor: Colors.white54,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppConstants.radiusMedium),
+                                ),
+                                elevation: 0,
+                              ),
+                            ),
                     ),
                   ],
                 ),

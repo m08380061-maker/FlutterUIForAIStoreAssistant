@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -23,6 +25,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   _ScanMode _mode = _ScanMode.barcode;
   bool _scanned = false;
   bool _isSaving = false;
+  XFile? _pickedImage;
+  MobileScannerController? _scanController;
   final ProductRepository _repository = ProductRepository();
 
   // Form controllers for manual / confirmed entry
@@ -36,6 +40,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   void dispose() {
+    _scanController?.dispose();
     _nameCtrl.dispose();
     _categoryCtrl.dispose();
     _priceCtrl.dispose();
@@ -45,17 +50,100 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
-  void _simulateScan() {
-    // TODO: Replace with real barcode scanner (e.g. mobile_scanner package)
-    setState(() {
-      _scanned = true;
-      _nameCtrl.text = 'Rice (5kg)';
-      _categoryCtrl.text = 'Grains';
-      _priceCtrl.text = '2500';
-      _purchasePriceCtrl.text = '2100';
-      _qtyCtrl.text = '50';
-      _barcodeCtrl.text = '6281234567890';
-    });
+  /// Opens the real barcode scanner in a modal and fills the barcode field.
+  Future<void> _openBarcodeScanner() async {
+    final controller = MobileScannerController();
+    setState(() => _scanController = controller);
+
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.65,
+        child: Stack(
+          children: [
+            MobileScanner(
+              controller: controller,
+              onDetect: (capture) {
+                final value = capture.barcodes.firstOrNull?.rawValue;
+                if (value != null && value.isNotEmpty) {
+                  controller.stop();
+                  Navigator.pop(ctx, value);
+                }
+              },
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: IconButton(
+                onPressed: () => Navigator.pop(ctx),
+                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+              ),
+            ),
+            Center(
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.primary, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    controller.dispose();
+    if (!mounted) return;
+
+    if (result != null) {
+      _barcodeCtrl.text = result;
+      // If a matching product exists in DB, pre-fill its details.
+      try {
+        final products = await _repository.getAllProducts();
+        final match = products.firstWhere(
+          (p) => p.barcode?.trim() == result.trim(),
+          orElse: () => products.first, // won't match; handled by catch
+        );
+        if (match.barcode?.trim() == result.trim()) {
+          _nameCtrl.text = match.name;
+          _categoryCtrl.text = match.category;
+          _priceCtrl.text = match.sellingPrice.toString();
+          _purchasePriceCtrl.text = match.purchasePrice.toString();
+          _qtyCtrl.text = match.quantity.toString();
+        }
+      } catch (_) {
+        // No match — barcode filled, rest entered manually.
+      }
+      setState(() => _scanned = true);
+    }
+  }
+
+  /// Opens the device camera to capture a product image.
+  Future<void> _openImageCamera() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+    if (!mounted) return;
+    if (file != null) {
+      setState(() {
+        _pickedImage = file;
+        _scanned = true;
+      });
+    }
+  }
+
+  void _handleActivate() {
+    if (_mode == _ScanMode.barcode) {
+      _openBarcodeScanner();
+    } else if (_mode == _ScanMode.image) {
+      _openImageCamera();
+    }
   }
 
   Future<void> _saveProduct() async {
@@ -144,7 +232,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 children: [
                   // Scanner viewport
                   if (!_scanned) ...[
-                    _ScannerViewport(mode: _mode, onSimulateScan: _simulateScan),
+                    _ScannerViewport(mode: _mode, onActivate: _handleActivate),
                     const SizedBox(height: 24),
                   ],
 
@@ -265,9 +353,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 }
 
 class _ScannerViewport extends StatelessWidget {
-  const _ScannerViewport({required this.mode, required this.onSimulateScan});
+  const _ScannerViewport({required this.mode, required this.onActivate});
   final _ScanMode mode;
-  final VoidCallback onSimulateScan;
+  final VoidCallback onActivate;
 
   @override
   Widget build(BuildContext context) {
@@ -306,7 +394,7 @@ class _ScannerViewport extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: onSimulateScan,
+                onPressed: onActivate,
                 icon: const Icon(Icons.center_focus_strong_rounded),
                 label: Text(tr.openCamera),
                 style: ElevatedButton.styleFrom(
