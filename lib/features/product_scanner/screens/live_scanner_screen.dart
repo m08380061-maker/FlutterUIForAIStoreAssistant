@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/i18n/app_translations.dart';
@@ -64,8 +64,10 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   DateTime? _lastScanTime;
 
   Timer? _statusResetTimer;
-  late final MobileScannerController _controller;
+  CameraController? _cameraController;
   bool _cameraStarted = false;
+  bool _isProcessingFrame = false;
+  DateTime? _lastFrameProcessedAt;
 
   late final AnimationController _frameAnimCtrl;
   late final AnimationController _overlayAnimCtrl;
@@ -99,14 +101,13 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       curve: Curves.easeOut,
     );
 
-    _controller = MobileScannerController();
     _loadProducts();
   }
 
   @override
   void dispose() {
     _statusResetTimer?.cancel();
-    _controller.dispose();
+    _cameraController?.dispose();
     _frameAnimCtrl.dispose();
     _overlayAnimCtrl.dispose();
     super.dispose();
@@ -129,30 +130,66 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
 
   // ── Camera & scanning ────────────────────────────────────────────────────────
 
-  void _startCamera() {
-    setState(() => _cameraStarted = true);
-  }
+  Future<void> _startCamera() async {
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
+      if (mounted) setState(() => _cameraStarted = true);
+      return;
+    }
 
-  /// Called by [MobileScanner] when a barcode frame is detected.
-  void _onBarcodeDetected(BarcodeCapture capture) {
-    if (_status != _ScanStatus.idle || !mounted) return;
-    final value = capture.barcodes.firstOrNull?.rawValue;
-    if (value == null || value.isEmpty) return;
-
-    setState(() => _status = _ScanStatus.recognizing);
-
-    final product = OfflineProductRecognizer.findBestMatch(_products, value);
-    if (product != null) {
-      final now = DateTime.now();
-      if (_lastScanned?.id == product.id &&
-          _lastScanTime != null &&
-          now.difference(_lastScanTime!) < OfflineProductRecognizer.debounceDuration) {
-        setState(() => _status = _ScanStatus.idle);
+    try {
+      final cameras = await availableCameras();
+      final camera = cameras.isNotEmpty ? cameras.first : null;
+      if (camera == null) {
+        if (mounted) setState(() => _isLoading = false);
         return;
       }
 
+      _cameraController = CameraController(camera, ResolutionPreset.medium, enableAudio: false);
+      await _cameraController!.initialize();
+      await _cameraController!.startImageStream(_processCameraFrame);
+      if (!mounted) return;
+      setState(() => _cameraStarted = true);
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _processCameraFrame(CameraImage image) {
+    if (_isProcessingFrame || _status != _ScanStatus.idle || !mounted) return;
+    final now = DateTime.now();
+    if (_lastFrameProcessedAt != null &&
+        now.difference(_lastFrameProcessedAt!) < const Duration(milliseconds: 500)) {
+      return;
+    }
+    _lastFrameProcessedAt = now;
+    _isProcessingFrame = true;
+    unawaited(_handleCameraFrame(image));
+  }
+
+  Future<void> _handleCameraFrame(CameraImage image) async {
+    try {
+      final product = await OfflineProductRecognizer.matchCameraImage(_products, image);
+      if (product == null) {
+        if (mounted) {
+          setState(() => _status = _ScanStatus.notFound);
+          _statusResetTimer?.cancel();
+          _statusResetTimer = Timer(const Duration(milliseconds: 1200), () {
+            if (mounted) setState(() => _status = _ScanStatus.idle);
+          });
+        }
+        return;
+      }
+
+      if (_lastScanned?.id == product.id &&
+          _lastScanTime != null &&
+          DateTime.now().difference(_lastScanTime!) < OfflineProductRecognizer.debounceDuration) {
+        if (mounted) setState(() => _status = _ScanStatus.idle);
+        return;
+      }
+
+      if (!mounted) return;
       _lastScanned = product;
-      _lastScanTime = now;
+      _lastScanTime = DateTime.now();
       _addToCart(product);
 
       setState(() => _status = _ScanStatus.found);
@@ -165,12 +202,10 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
           setState(() => _status = _ScanStatus.idle);
         }
       });
-    } else {
-      setState(() => _status = _ScanStatus.notFound);
-      _statusResetTimer?.cancel();
-      _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
-        if (mounted) setState(() => _status = _ScanStatus.idle);
-      });
+    } catch (_) {
+      if (mounted) setState(() => _status = _ScanStatus.idle);
+    } finally {
+      if (mounted) setState(() => _isProcessingFrame = false);
     }
   }
 
@@ -211,13 +246,10 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Real camera feed (MobileScanner) or placeholder ───────────────
-          if (_cameraStarted)
+          // ── Real camera feed or placeholder ───────────────────────────────
+          if (_cameraStarted && _cameraController != null && _cameraController!.value.isInitialized)
             Positioned.fill(
-              child: MobileScanner(
-                controller: _controller,
-                onDetect: _onBarcodeDetected,
-              ),
+              child: CameraPreview(_cameraController!),
             )
           else
             const _CameraBackground(),

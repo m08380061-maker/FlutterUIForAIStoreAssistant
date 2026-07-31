@@ -143,14 +143,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (!mounted || file == null) return;
 
       final savedPath = await _imageService.savePickedImage(file);
-      final barcode = _barcodeCtrl.text.trim();
 
-      final products = await _repository.getAllProducts();
-      ProductModel? match;
-      if (barcode.isNotEmpty) {
-        match = OfflineProductRecognizer.findBestMatch(products, barcode);
-      }
-
+    final products = await _repository.getAllProducts();
+    final match = await OfflineProductRecognizer.matchImageFile(products, savedPath);
       if (!mounted) return;
 
       setState(() {
