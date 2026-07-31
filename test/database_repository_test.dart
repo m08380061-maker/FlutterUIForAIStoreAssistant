@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ai_store_assistant/core/database/app_database.dart';
-import 'package:ai_store_assistant/shared/repositories/product_repository.dart';
-import 'package:ai_store_assistant/shared/repositories/repository_exceptions.dart';
+import 'package:FlutterUIForAIStoreAssistant/core/database/app_database.dart';
+import 'package:FlutterUIForAIStoreAssistant/shared/repositories/product_repository.dart';
+import 'package:FlutterUIForAIStoreAssistant/shared/repositories/repository_exceptions.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

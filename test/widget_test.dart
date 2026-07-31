@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ai_store_assistant/main.dart';
-import 'package:ai_store_assistant/core/theme/app_theme.dart';
-import 'package:ai_store_assistant/shared/services/storage_service.dart';
+import 'package:FlutterUIForAIStoreAssistant/main.dart';
+import 'package:FlutterUIForAIStoreAssistant/core/theme/app_theme.dart';
+import 'package:FlutterUIForAIStoreAssistant/shared/services/storage_service.dart';
 
 void main() {
   setUp(() async {
-    // Provide an in-memory SharedPreferences implementation for tests.
     SharedPreferences.setMockInitialValues({});
     await StorageService.instance.initialize();
   });
@@ -32,19 +31,11 @@ void main() {
     expect(find.text('OK'), findsOneWidget);
   });
 
-  testWidgets('Full app launches and navigates away from splash', (WidgetTester tester) async {
+  testWidgets('Full app launches without crashing', (WidgetTester tester) async {
     await tester.pumpWidget(const AiStoreAssistantApp());
-
-    // Verify root widget rendered.
     expect(find.byType(AiStoreAssistantApp), findsOneWidget);
-
-    // Advance fake time past the 2-second SplashScreen navigation delay.
     await tester.pump(const Duration(seconds: 3));
-
-    // Let GoRouter and any resulting animations fully settle.
     await tester.pumpAndSettle();
-
-    // The app should have navigated away from splash without throwing.
     expect(tester.takeException(), isNull);
   });
 }
