@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/repositories/repository_exceptions.dart';
+import '../../../shared/services/offline_product_recognizer.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public data class shared with SalesScreen via router extra.
@@ -140,13 +141,12 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
 
     setState(() => _status = _ScanStatus.recognizing);
 
-    final product = _findByBarcode(value);
+    final product = OfflineProductRecognizer.findBestMatch(_products, value);
     if (product != null) {
-      // Debounce: skip the same product scanned within 2 seconds.
       final now = DateTime.now();
       if (_lastScanned?.id == product.id &&
           _lastScanTime != null &&
-          now.difference(_lastScanTime!) < const Duration(seconds: 2)) {
+          now.difference(_lastScanTime!) < OfflineProductRecognizer.debounceDuration) {
         setState(() => _status = _ScanStatus.idle);
         return;
       }
@@ -171,18 +171,6 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
         if (mounted) setState(() => _status = _ScanStatus.idle);
       });
-    }
-  }
-
-  /// Returns the first product whose barcode matches [value], or null.
-  ProductModel? _findByBarcode(String value) {
-    final normalized = value.trim().toLowerCase();
-    try {
-      return _products.firstWhere(
-        (p) => (p.barcode?.trim().toLowerCase() ?? '') == normalized,
-      );
-    } catch (_) {
-      return null;
     }
   }
 
