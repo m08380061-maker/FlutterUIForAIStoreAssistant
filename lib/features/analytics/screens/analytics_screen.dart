@@ -289,16 +289,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  String _fmt(double value) {
-    if (value >= 1000000) {
-      return '${(value / 1000000).toStringAsFixed(1)}M';
-    }
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (m) => ',',
-    );
-  }
-
   String _dayLabel(DateTime date) {
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     return days[date.weekday - 1];
@@ -344,13 +334,6 @@ class _BestSellerRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  String _fmtRevenue(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (m) => ',',
     );
   }
 }

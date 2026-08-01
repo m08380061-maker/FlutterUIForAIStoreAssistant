@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -6,6 +8,8 @@ import '../../../core/i18n/app_translations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/repositories/repository_exceptions.dart';
+import '../../../shared/services/offline_product_recognizer.dart';
+import '../../../shared/services/product_image_service.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 
@@ -26,8 +30,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool _scanned = false;
   bool _isSaving = false;
   XFile? _pickedImage;
+  String? _savedImagePath;
   MobileScannerController? _scanController;
   final ProductRepository _repository = ProductRepository();
+  final ProductImageService _imageService = ProductImageService();
 
   // Form controllers for manual / confirmed entry
   final _formKey = GlobalKey<FormState>();
@@ -55,68 +61,71 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final controller = MobileScannerController();
     setState(() => _scanController = controller);
 
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.black,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.65,
-        child: Stack(
-          children: [
-            MobileScanner(
-              controller: controller,
-              onDetect: (capture) {
-                final value = capture.barcodes.firstOrNull?.rawValue;
-                if (value != null && value.isNotEmpty) {
-                  controller.stop();
-                  Navigator.pop(ctx, value);
-                }
-              },
-            ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: IconButton(
-                onPressed: () => Navigator.pop(ctx),
-                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+    String? result;
+    try {
+      result = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.black,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.65,
+          child: Stack(
+            children: [
+              MobileScanner(
+                controller: controller,
+                onDetect: (capture) {
+                  final value = capture.barcodes.firstOrNull?.rawValue;
+                  if (value != null && value.isNotEmpty) {
+                    controller.stop();
+                    Navigator.pop(ctx, value);
+                  }
+                },
               ),
-            ),
-            Center(
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primary, width: 2),
-                  borderRadius: BorderRadius.circular(12),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
                 ),
               ),
-            ),
-          ],
+              Center(
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      result = null;
+    } finally {
+      controller.dispose();
+    }
 
-    controller.dispose();
     if (!mounted) return;
 
-    if (result != null) {
+    if (result != null && result.isNotEmpty) {
       _barcodeCtrl.text = result;
-      // If a matching product exists in DB, pre-fill its details.
       try {
         final products = await _repository.getAllProducts();
-        final match = products.firstWhere(
-          (p) => p.barcode?.trim() == result.trim(),
-          orElse: () => products.first, // won't match; handled by catch
-        );
-        if (match.barcode?.trim() == result.trim()) {
+        final match = OfflineProductRecognizer.findBestMatch(products, result);
+        if (match != null) {
           _nameCtrl.text = match.name;
           _categoryCtrl.text = match.category;
           _priceCtrl.text = match.sellingPrice.toString();
           _purchasePriceCtrl.text = match.purchasePrice.toString();
           _qtyCtrl.text = match.quantity.toString();
+          _barcodeCtrl.text = match.barcode ?? result;
         }
       } catch (_) {
         // No match — barcode filled, rest entered manually.
@@ -125,16 +134,37 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  /// Opens the device camera to capture a product image.
+  /// Opens the device camera to capture a product image and stores it locally.
   Future<void> _openImageCamera() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
-    if (!mounted) return;
-    if (file != null) {
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 90);
+      if (!mounted || file == null) return;
+
+      final savedPath = await _imageService.savePickedImage(file);
+
+    final products = await _repository.getAllProducts();
+    final match = await OfflineProductRecognizer.matchImageFile(products, savedPath);
+      if (!mounted) return;
+
       setState(() {
         _pickedImage = file;
+        _savedImagePath = savedPath;
         _scanned = true;
+        if (match != null) {
+          _nameCtrl.text = match.name;
+          _categoryCtrl.text = match.category;
+          _priceCtrl.text = match.sellingPrice.toString();
+          _purchasePriceCtrl.text = match.purchasePrice.toString();
+          _qtyCtrl.text = match.quantity.toString();
+          _barcodeCtrl.text = match.barcode ?? _barcodeCtrl.text;
+        }
       });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr.productNotRecognized), backgroundColor: AppColors.error),
+      );
     }
   }
 
@@ -157,6 +187,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         sellingPrice: double.parse(_priceCtrl.text),
         quantity: int.parse(_qtyCtrl.text),
         barcode: _barcodeCtrl.text.trim().isEmpty ? null : _barcodeCtrl.text.trim(),
+        imageUrl: _savedImagePath,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -260,6 +291,20 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      if (_pickedImage != null) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                          child: SizedBox(
+                            height: 180,
+                            width: double.infinity,
+                            child: Image.file(
+                              File(_savedImagePath ?? _pickedImage!.path),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ],
                     Form(
                       key: _formKey,

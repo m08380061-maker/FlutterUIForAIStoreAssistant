@@ -82,7 +82,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = _pages(context);
-    final size = MediaQuery.sizeOf(context);
     return Scaffold(
       body: SafeArea(
         child: Column(

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/services/auth_service.dart';
 import '../../../shared/services/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utilities/app_date_utils.dart';
 import '../../../core/i18n/app_translations.dart';
 
 class SplashScreen extends StatefulWidget {
