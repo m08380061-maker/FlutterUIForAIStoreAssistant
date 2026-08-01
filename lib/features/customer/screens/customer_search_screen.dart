@@ -345,7 +345,7 @@ class _CustomerRow extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: AppColors.primary.withOpacity(0.08),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.08),
             child: Text(
               customer.initials,
               style: TextStyle(
@@ -401,7 +401,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: (color ?? AppColors.primary).withOpacity(0.08),
+          color: (color ?? AppColors.primary).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 16, color: color ?? AppColors.primary),

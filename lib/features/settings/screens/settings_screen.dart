@@ -77,7 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.primary.withOpacity(0.12),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                     child: Text(
                       user?.initials ?? '?',
                       style: textTheme.titleLarge?.copyWith(color: AppColors.primary),
@@ -94,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                           ),
                           child: Text(
@@ -206,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.12),
+                      color: AppColors.warning.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
                     ),
                     child: const Icon(Icons.workspace_premium_rounded, color: AppColors.warning, size: 24),
@@ -314,7 +314,7 @@ class _ThemeOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: active ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
           border: Border.all(color: active ? AppColors.primary : Theme.of(context).colorScheme.outline),
         ),
@@ -345,7 +345,7 @@ class _LangOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: active ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
           border: Border.all(color: active ? AppColors.primary : Theme.of(context).colorScheme.outline),
         ),

@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 import '../app_database.dart';
 import '../tables/inventory_movements_table.dart';
-import '../tables/products_table.dart';
 
 part 'inventory_movements_dao.g.dart';
 

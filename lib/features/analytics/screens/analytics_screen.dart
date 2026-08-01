@@ -134,7 +134,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           show: true,
                           drawVerticalLine: false,
                           getDrawingHorizontalLine: (v) => FlLine(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                             strokeWidth: 1,
                           ),
                         ),
@@ -167,7 +167,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             dotData: const FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: AppColors.primary.withOpacity(0.08),
+                              color: AppColors.primary.withValues(alpha: 0.08),
                             ),
                           ),
                           LineChartBarData(
@@ -178,7 +178,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             dotData: const FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: AppColors.accent.withOpacity(0.08),
+                              color: AppColors.accent.withValues(alpha: 0.08),
                             ),
                           ),
                         ],
@@ -289,16 +289,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  String _fmt(double value) {
-    if (value >= 1000000) {
-      return '${(value / 1000000).toStringAsFixed(1)}M';
-    }
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (m) => ',',
-    );
-  }
-
   String _dayLabel(DateTime date) {
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     return days[date.weekday - 1];
@@ -320,10 +310,10 @@ class _BestSellerRow extends StatelessWidget {
           Container(
             width: 28, height: 28,
             decoration: BoxDecoration(
-              color: rank == 1 ? const Color(0xFFFFD700).withOpacity(0.15)
-                  : rank == 2 ? const Color(0xFFC0C0C0).withOpacity(0.15)
-                  : rank == 3 ? const Color(0xFFCD7F32).withOpacity(0.15)
-                  : AppColors.primary.withOpacity(0.08),
+              color: rank == 1 ? const Color(0xFFFFD700).withValues(alpha: 0.15)
+                  : rank == 2 ? const Color(0xFFC0C0C0).withValues(alpha: 0.15)
+                  : rank == 3 ? const Color(0xFFCD7F32).withValues(alpha: 0.15)
+                  : AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -344,13 +334,6 @@ class _BestSellerRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  String _fmtRevenue(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (m) => ',',
     );
   }
 }

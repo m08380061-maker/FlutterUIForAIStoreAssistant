@@ -62,21 +62,6 @@ class ApiService {
 
   // ── Internal helpers ──────────────────────────────────────────────────────
 
-  Map<String, String> _authHeaders(Map<String, String>? extra) {
-    // TODO: Retrieve token from SecureStorageService
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      // 'Authorization': 'Bearer $token',
-      ...?extra,
-    };
-  }
-
-  Map<String, dynamic> _handleResponse(dynamic response) {
-    // TODO: Parse status codes, throw typed exceptions for 4xx/5xx
-    throw UnimplementedError('_handleResponse not yet wired to a real HTTP client');
-  }
-
   String get baseUrl => _baseUrl;
 }
 

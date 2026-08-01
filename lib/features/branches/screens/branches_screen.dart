@@ -18,7 +18,6 @@ class _BranchesScreenState extends State<BranchesScreen> {
   final BranchRepository _repository = BranchRepository();
   List<BranchRecord> _branches = [];
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -29,13 +28,16 @@ class _BranchesScreenState extends State<BranchesScreen> {
   Future<void> _loadBranches() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
     try {
       final branches = await _repository.getBranches();
       setState(() => _branches = branches);
     } on RepositoryException catch (e) {
-      setState(() => _errorMessage = e.message);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: AppColors.error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -85,7 +87,6 @@ class _BranchesScreenState extends State<BranchesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(title: Text(context.tr.branchManagement)),
       body: _isLoading
@@ -145,7 +146,7 @@ class _BranchCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: (branch.isActive ? AppColors.primary : AppColors.lightTextHint).withOpacity(0.12),
+                  color: (branch.isActive ? AppColors.primary : AppColors.lightTextHint).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
                 ),
                 child: Icon(
@@ -180,7 +181,7 @@ class _BranchCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (branch.isActive ? AppColors.success : AppColors.error).withOpacity(0.1),
+                  color: (branch.isActive ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                 ),
                 child: Text(

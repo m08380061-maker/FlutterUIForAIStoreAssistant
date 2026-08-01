@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 
 import '../app_database.dart';
-import '../tables/branches_table.dart';
 import '../tables/employees_table.dart';
 
 part 'employees_dao.g.dart';

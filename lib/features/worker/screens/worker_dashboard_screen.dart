@@ -41,7 +41,7 @@ class WorkerDashboardScreen extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppColors.primary.withOpacity(0.12),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                     child: Text(
                       user?.initials ?? 'W',
                       style: textTheme.titleMedium?.copyWith(color: AppColors.primary),
@@ -63,7 +63,7 @@ class WorkerDashboardScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.12),
+                      color: AppColors.success.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                     ),
                     child: Text(
@@ -141,9 +141,9 @@ class WorkerDashboardScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.08),
+                color: AppColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                border: Border.all(color: AppColors.info.withOpacity(0.2)),
+                border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +190,7 @@ class _WorkerActionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             ),
             child: Icon(icon, color: color, size: 26),

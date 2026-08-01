@@ -120,7 +120,7 @@ class _AccountCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: option.color.withOpacity(0.12),
+                  color: option.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
                 ),
                 child: Icon(option.icon, color: option.color, size: 28),
@@ -170,9 +170,9 @@ class _FeatureChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppConstants.radiusFull),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         label,

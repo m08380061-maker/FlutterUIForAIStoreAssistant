@@ -82,7 +82,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = _pages(context);
-    final size = MediaQuery.sizeOf(context);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -172,7 +171,7 @@ class _PageContent extends StatelessWidget {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              color: page.color.withOpacity(0.12),
+              color: page.color.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(page.icon, size: 72, color: page.color),
