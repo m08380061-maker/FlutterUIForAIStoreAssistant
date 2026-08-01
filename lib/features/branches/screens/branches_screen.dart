@@ -146,7 +146,7 @@ class _BranchCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: (branch.isActive ? AppColors.primary : AppColors.lightTextHint).withOpacity(0.12),
+                  color: (branch.isActive ? AppColors.primary : AppColors.lightTextHint).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
                 ),
                 child: Icon(
@@ -181,7 +181,7 @@ class _BranchCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (branch.isActive ? AppColors.success : AppColors.error).withOpacity(0.1),
+                  color: (branch.isActive ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                 ),
                 child: Text(
