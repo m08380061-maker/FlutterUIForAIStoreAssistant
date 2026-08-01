@@ -10,13 +10,13 @@ analyzer:
     - macos/**
     - linux/**
     # onnx_vision_provider.dart references package:onnxruntime which is not
-    # yet declared in pubspec.yaml. This is incomplete code for a future
-    # ONNX vision feature. It will be re-enabled when the dependency is added.
+    # yet declared in pubspec.yaml. Incomplete code for a future ONNX vision
+    # feature. Re-enabled when the dependency is added.
     - lib/features/ai_assistant/services/onnx_vision_provider.dart
-
-linter:
-  rules:
-    # Disable deprecated_member_use to avoid failing CI on withOpacity
-    # deprecation (Flutter 3.32+). The migration to withValues(alpha:)
-    # is tracked as a Phase 2 task.
-    deprecated_member_use: false
+  errors:
+    # Ignore deprecated_member_use from the Flutter framework (withOpacity
+    # deprecation in Flutter 3.32+). Migration tracked as Phase 2 task.
+    deprecated_member_use: ignore
+  language:
+    strict-casts: true
+    strict-raw-types: true
