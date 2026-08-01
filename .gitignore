@@ -92,3 +92,9 @@ vite.config.*.timestamp-*
 .local/
 .agents/
 .figma/
+
+# Generated localization files
+/lib/l10n/app_localizations*.dart
+
+# Local SQLite database (created by tests / dev runs)
+*.db
