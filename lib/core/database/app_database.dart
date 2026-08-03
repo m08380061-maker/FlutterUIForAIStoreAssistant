@@ -97,55 +97,70 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
+          await _createEnrollmentTables();
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.createTable(promotions);
           }
+          if (from < 3) {
+            await _createEnrollmentTables();
+          }
         },
       );
 
-  Future<void> ensureSeeded() async {
-    final productCount = await select(products).get();
-    if (productCount.isNotEmpty) return;
+  Future<void> _createEnrollmentTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS product_images (
+        id TEXT PRIMARY KEY NOT NULL,
+        product_id TEXT NOT NULL,
+        local_path TEXT NOT NULL,
+        source_url TEXT,
+        width INTEGER,
+        height INTEGER,
+        is_primary INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_product_images_pid ON product_images(product_id)');
 
-    await into(products).insert(ProductsCompanion(
-      id: const Value('seed-product-1'),
-      name: const Value('Rice (5kg)'),
-      category: const Value('Grains'),
-      purchasePrice: const Value(2100),
-      sellingPrice: const Value(2500),
-      quantity: const Value(20),
-      barcode: const Value('6281234567890'),
-      createdAt: Value(DateTime.now()),
-      updatedAt: Value(DateTime.now()),
-    ));
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS product_drafts (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        barcode TEXT,
+        category TEXT,
+        purchase_price REAL,
+        selling_price REAL,
+        quantity INTEGER,
+        description TEXT,
+        source_type TEXT NOT NULL,
+        source_image_path TEXT,
+        extracted_data TEXT,
+        completion_percent INTEGER NOT NULL DEFAULT 0,
+        is_completed INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
 
-    await into(products).insert(ProductsCompanion(
-      id: const Value('seed-product-2'),
-      name: const Value('Cooking Oil (1L)'),
-      category: const Value('Oils'),
-      purchasePrice: const Value(1000),
-      sellingPrice: const Value(1200),
-      quantity: const Value(8),
-      barcode: const Value('6281234567891'),
-      createdAt: Value(DateTime.now()),
-      updatedAt: Value(DateTime.now()),
-    ));
-
-    await into(branches).insert(BranchesCompanion(
-      id: const Value('seed-branch-1'),
-      name: const Value('Main Branch'),
-      address: const Value('Tahrir Square, Sana\'a'),
-      dailySales: const Value(0),
-      workerCount: const Value(4),
-    ));
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS product_embeddings (
+        id TEXT PRIMARY KEY NOT NULL,
+        product_id TEXT NOT NULL,
+        embedding_json TEXT NOT NULL,
+        image_path TEXT NOT NULL,
+        version INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_product_embeddings_pid ON product_embeddings(product_id)');
   }
 
   Future<void> reset() async {
@@ -189,5 +204,3 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 }
-
-// The generated file will expose the `Product`, `Sale`, ... row classes.
