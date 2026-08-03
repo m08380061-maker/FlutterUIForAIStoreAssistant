@@ -18,6 +18,12 @@ import '../../features/analytics/screens/analytics_screen.dart';
 import '../../features/branches/screens/branches_screen.dart';
 import '../../features/marketing/screens/marketing_screen.dart';
 import '../../features/ai_assistant/screens/ai_chat_screen.dart';
+import '../../features/enrollment/screens/enrollment_hub_screen.dart';
+import '../../features/enrollment/screens/barcode_enrollment_screen.dart';
+import '../../features/enrollment/screens/photo_enrollment_screen.dart';
+import '../../features/enrollment/screens/invoice_enrollment_screen.dart';
+import '../../features/enrollment/screens/manual_enrollment_screen.dart';
+import '../../features/enrollment/screens/draft_review_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../i18n/app_translations.dart';
 
@@ -28,25 +34,10 @@ class AppRouter {
     initialLocation: '/splash',
     debugLogDiagnostics: false,
     routes: [
-      // ── Onboarding ──────────────────────────────────────────────────────
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
-      ),
-      GoRoute(
-        path: '/account-type',
-        builder: (context, state) => const AccountTypeScreen(),
-      ),
-
-      // ── Authentication ──────────────────────────────────────────────────
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+      GoRoute(path: '/account-type', builder: (context, state) => const AccountTypeScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) {
@@ -55,47 +46,27 @@ class AppRouter {
           return RegisterScreen(role: role);
         },
       ),
-
-      // ── Merchant ────────────────────────────────────────────────────────
+      GoRoute(path: '/merchant/dashboard', builder: (context, state) => const MerchantDashboardScreen()),
+      GoRoute(path: '/worker/dashboard', builder: (context, state) => const WorkerDashboardScreen()),
+      GoRoute(path: '/customer/search', builder: (context, state) => const CustomerSearchScreen()),
+      GoRoute(path: '/inventory', builder: (context, state) => const InventoryScreen()),
+      GoRoute(path: '/scanner', builder: (context, state) => const ScannerScreen()),
+      GoRoute(path: '/enrollment', builder: (context, state) => const EnrollmentHubScreen()),
+      GoRoute(path: '/enrollment/barcode', builder: (context, state) => const BarcodeEnrollmentScreen()),
+      GoRoute(path: '/enrollment/photo', builder: (context, state) => const PhotoEnrollmentScreen()),
+      GoRoute(path: '/enrollment/invoice', builder: (context, state) => const InvoiceEnrollmentScreen()),
+      GoRoute(path: '/enrollment/manual', builder: (context, state) => const ManualEnrollmentScreen()),
       GoRoute(
-        path: '/merchant/dashboard',
-        builder: (context, state) => const MerchantDashboardScreen(),
+        path: '/enrollment/draft/:draftId',
+        builder: (context, state) => DraftReviewScreen(draftId: state.pathParameters['draftId']!),
       ),
-
-      // ── Worker ──────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/worker/dashboard',
-        builder: (context, state) => const WorkerDashboardScreen(),
-      ),
-
-      // ── Customer ────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/customer/search',
-        builder: (context, state) => const CustomerSearchScreen(),
-      ),
-
-      // ── Shared features ─────────────────────────────────────────────────
-      GoRoute(
-        path: '/inventory',
-        builder: (context, state) => const InventoryScreen(),
-      ),
-      GoRoute(
-        path: '/scanner',
-        builder: (context, state) => const ScannerScreen(),
-      ),
-      GoRoute(
-        path: '/scanner/live',
-        builder: (context, state) => const LiveScannerScreen(),
-      ),
+      GoRoute(path: '/scanner/live', builder: (context, state) => const LiveScannerScreen()),
       GoRoute(
         path: '/invoice',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final rawItems = extra?['cartItems'] as List<dynamic>?;
-          final items = rawItems
-                  ?.map((e) => e as Map<String, dynamic>)
-                  .toList() ??
-              [];
+          final items = rawItems?.map((e) => e as Map<String, dynamic>).toList() ?? [];
           return InvoiceScreen(initialItems: items);
         },
       ),
@@ -103,41 +74,18 @@ class AppRouter {
         path: '/sales',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          final rawItems =
-              extra?['cartItems'] as List<dynamic>?;
-          final cartItems = rawItems
-              ?.map((e) => e as Map<String, dynamic>)
-              .toList();
+          final rawItems = extra?['cartItems'] as List<dynamic>?;
+          final cartItems = rawItems?.map((e) => e as Map<String, dynamic>).toList();
           return SalesScreen(initialCartItems: cartItems);
         },
       ),
-      GoRoute(
-        path: '/debts',
-        builder: (context, state) => const DebtsScreen(),
-      ),
-      GoRoute(
-        path: '/analytics',
-        builder: (context, state) => const AnalyticsScreen(),
-      ),
-      GoRoute(
-        path: '/branches',
-        builder: (context, state) => const BranchesScreen(),
-      ),
-      GoRoute(
-        path: '/marketing',
-        builder: (context, state) => const MarketingScreen(),
-      ),
-      GoRoute(
-        path: '/ai-assistant',
-        builder: (context, state) => const AiChatScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
+      GoRoute(path: '/debts', builder: (context, state) => const DebtsScreen()),
+      GoRoute(path: '/analytics', builder: (context, state) => const AnalyticsScreen()),
+      GoRoute(path: '/branches', builder: (context, state) => const BranchesScreen()),
+      GoRoute(path: '/marketing', builder: (context, state) => const MarketingScreen()),
+      GoRoute(path: '/ai-assistant', builder: (context, state) => const AiChatScreen()),
+      GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
     ],
-
-    // Global error page
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
@@ -149,10 +97,7 @@ class AppRouter {
             const SizedBox(height: 8),
             Text(state.uri.path, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => context.go('/splash'),
-              child: Text(context.tr.goHome),
-            ),
+            ElevatedButton(onPressed: () => context.go('/splash'), child: Text(context.tr.goHome)),
           ],
         ),
       ),
