@@ -3,32 +3,17 @@ import 'package:FlutterUIForAIStoreAssistant/shared/models/product_model.dart';
 import 'package:FlutterUIForAIStoreAssistant/shared/services/offline_product_recognizer.dart';
 
 /// Regression tests for the OfflineProductRecognizer scoring logic.
-/// Protects the barcode/name/category matching algorithm that the
-/// scanner screens depend on for product identification.
 void main() {
   final products = [
     ProductModel(
-      id: 'p1',
-      name: 'Rice (5kg)',
-      nameAr: 'أرز',
-      category: 'Grains',
-      purchasePrice: 2100,
-      sellingPrice: 2500,
-      quantity: 20,
-      barcode: '6281234567890',
-      createdAt: DateTime(2024),
-      updatedAt: DateTime(2024),
+      id: 'p1', name: 'Rice (5kg)', nameAr: 'أرز', category: 'Grains',
+      purchasePrice: 2100, sellingPrice: 2500, quantity: 20,
+      barcode: '6281234567890', createdAt: DateTime(2024), updatedAt: DateTime(2024),
     ),
     ProductModel(
-      id: 'p2',
-      name: 'Cooking Oil (1L)',
-      category: 'Oils',
-      purchasePrice: 1000,
-      sellingPrice: 1200,
-      quantity: 8,
-      barcode: '6281234567891',
-      createdAt: DateTime(2024),
-      updatedAt: DateTime(2024),
+      id: 'p2', name: 'Cooking Oil (1L)', category: 'Oils',
+      purchasePrice: 1000, sellingPrice: 1200, quantity: 8,
+      barcode: '6281234567891', createdAt: DateTime(2024), updatedAt: DateTime(2024),
     ),
   ];
 

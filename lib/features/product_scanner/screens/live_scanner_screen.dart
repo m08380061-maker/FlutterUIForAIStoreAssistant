@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/i18n/app_translations.dart';
@@ -10,7 +10,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/models/product_model.dart';
 import '../../../shared/repositories/product_repository.dart';
 import '../../../shared/repositories/repository_exceptions.dart';
-import '../../../shared/services/offline_product_recognizer.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public data class shared with SalesScreen via router extra.
@@ -64,10 +63,8 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
   DateTime? _lastScanTime;
 
   Timer? _statusResetTimer;
-  CameraController? _cameraController;
+  late final MobileScannerController _controller;
   bool _cameraStarted = false;
-  bool _isProcessingFrame = false;
-  DateTime? _lastFrameProcessedAt;
 
   late final AnimationController _frameAnimCtrl;
   late final AnimationController _overlayAnimCtrl;
@@ -101,13 +98,14 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       curve: Curves.easeOut,
     );
 
+    _controller = MobileScannerController();
     _loadProducts();
   }
 
   @override
   void dispose() {
     _statusResetTimer?.cancel();
-    _cameraController?.dispose();
+    _controller.dispose();
     _frameAnimCtrl.dispose();
     _overlayAnimCtrl.dispose();
     super.dispose();
@@ -130,66 +128,31 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
 
   // ── Camera & scanning ────────────────────────────────────────────────────────
 
-  Future<void> _startCamera() async {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      if (mounted) setState(() => _cameraStarted = true);
-      return;
-    }
-
-    try {
-      final cameras = await availableCameras();
-      final camera = cameras.isNotEmpty ? cameras.first : null;
-      if (camera == null) {
-        if (mounted) setState(() => _isLoading = false);
-        return;
-      }
-
-      _cameraController = CameraController(camera, ResolutionPreset.medium, enableAudio: false);
-      await _cameraController!.initialize();
-      await _cameraController!.startImageStream(_processCameraFrame);
-      if (!mounted) return;
-      setState(() => _cameraStarted = true);
-    } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
-    }
+  void _startCamera() {
+    setState(() => _cameraStarted = true);
   }
 
-  void _processCameraFrame(CameraImage image) {
-    if (_isProcessingFrame || _status != _ScanStatus.idle || !mounted) return;
-    final now = DateTime.now();
-    if (_lastFrameProcessedAt != null &&
-        now.difference(_lastFrameProcessedAt!) < const Duration(milliseconds: 500)) {
-      return;
-    }
-    _lastFrameProcessedAt = now;
-    _isProcessingFrame = true;
-    unawaited(_handleCameraFrame(image));
-  }
+  /// Called by [MobileScanner] when a barcode frame is detected.
+  void _onBarcodeDetected(BarcodeCapture capture) {
+    if (_status != _ScanStatus.idle || !mounted) return;
+    final value = capture.barcodes.firstOrNull?.rawValue;
+    if (value == null || value.isEmpty) return;
 
-  Future<void> _handleCameraFrame(CameraImage image) async {
-    try {
-      final product = await OfflineProductRecognizer.matchCameraImage(_products, image);
-      if (product == null) {
-        if (mounted) {
-          setState(() => _status = _ScanStatus.notFound);
-          _statusResetTimer?.cancel();
-          _statusResetTimer = Timer(const Duration(milliseconds: 1200), () {
-            if (mounted) setState(() => _status = _ScanStatus.idle);
-          });
-        }
-        return;
-      }
+    setState(() => _status = _ScanStatus.recognizing);
 
+    final product = _findByBarcode(value);
+    if (product != null) {
+      // Debounce: skip the same product scanned within 2 seconds.
+      final now = DateTime.now();
       if (_lastScanned?.id == product.id &&
           _lastScanTime != null &&
-          DateTime.now().difference(_lastScanTime!) < OfflineProductRecognizer.debounceDuration) {
-        if (mounted) setState(() => _status = _ScanStatus.idle);
+          now.difference(_lastScanTime!) < const Duration(seconds: 2)) {
+        setState(() => _status = _ScanStatus.idle);
         return;
       }
 
-      if (!mounted) return;
       _lastScanned = product;
-      _lastScanTime = DateTime.now();
+      _lastScanTime = now;
       _addToCart(product);
 
       setState(() => _status = _ScanStatus.found);
@@ -202,10 +165,24 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
           setState(() => _status = _ScanStatus.idle);
         }
       });
+    } else {
+      setState(() => _status = _ScanStatus.notFound);
+      _statusResetTimer?.cancel();
+      _statusResetTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (mounted) setState(() => _status = _ScanStatus.idle);
+      });
+    }
+  }
+
+  /// Returns the first product whose barcode matches [value], or null.
+  ProductModel? _findByBarcode(String value) {
+    final normalized = value.trim().toLowerCase();
+    try {
+      return _products.firstWhere(
+        (p) => (p.barcode?.trim().toLowerCase() ?? '') == normalized,
+      );
     } catch (_) {
-      if (mounted) setState(() => _status = _ScanStatus.idle);
-    } finally {
-      if (mounted) setState(() => _isProcessingFrame = false);
+      return null;
     }
   }
 
@@ -246,10 +223,13 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Real camera feed or placeholder ───────────────────────────────
-          if (_cameraStarted && _cameraController != null && _cameraController!.value.isInitialized)
+          // ── Real camera feed (MobileScanner) or placeholder ───────────────
+          if (_cameraStarted)
             Positioned.fill(
-              child: CameraPreview(_cameraController!),
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _onBarcodeDetected,
+              ),
             )
           else
             const _CameraBackground(),
@@ -266,7 +246,7 @@ class _LiveScannerScreenState extends State<LiveScannerScreen>
                 };
                 return _ScanFrame(
                   size: 220,
-                  color: color.withValues(alpha: _frameOpacity.value),
+                  color: color.withOpacity(_frameOpacity.value),
                   isRecognizing: _status == _ScanStatus.recognizing,
                 );
               },
@@ -460,7 +440,7 @@ class _DotGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.06)
+      ..color = Colors.white.withOpacity(0.06)
       ..style = PaintingStyle.fill;
     const step = 22.0;
     for (double x = 0; x < size.width; x += step) {
@@ -499,7 +479,7 @@ class _ScanFrame extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: color, width: 1.5),
               borderRadius: BorderRadius.circular(12),
-              color: color.withValues(alpha: 0.05),
+              color: color.withOpacity(0.05),
             ),
           ),
           // Corner brackets
@@ -625,7 +605,7 @@ class _ScanLineState extends State<_ScanLine>
             gradient: LinearGradient(
               colors: [
                 Colors.transparent,
-                widget.color.withValues(alpha: 0.9),
+                widget.color.withOpacity(0.9),
                 Colors.transparent,
               ],
             ),
@@ -649,7 +629,7 @@ class _StatusChip extends StatelessWidget {
     final (text, color, icon) = switch (status) {
       _ScanStatus.idle => (
           tr.aimCameraAtProduct,
-          Colors.white.withValues(alpha: 0.85),
+          Colors.white.withOpacity(0.85),
           Icons.center_focus_strong_rounded,
         ),
       _ScanStatus.recognizing => (
@@ -676,9 +656,9 @@ class _StatusChip extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
+          color: Colors.black.withOpacity(0.55),
           borderRadius: BorderRadius.circular(AppConstants.radiusFull),
-          border: Border.all(color: color.withValues(alpha: 0.4)),
+          border: Border.all(color: color.withOpacity(0.4)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -777,7 +757,7 @@ class _ProductFoundCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.95),
+        color: AppColors.success.withOpacity(0.95),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
         boxShadow: const [
           BoxShadow(
@@ -793,7 +773,7 @@ class _ProductFoundCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.check_rounded,
@@ -817,7 +797,7 @@ class _ProductFoundCard extends StatelessWidget {
                 Text(
                   tr.formatCurrency(product.sellingPrice),
                   style: textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.88),
+                    color: Colors.white.withOpacity(0.88),
                   ),
                 ),
               ],
@@ -827,7 +807,7 @@ class _ProductFoundCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius:
                     BorderRadius.circular(AppConstants.radiusFull),
               ),
@@ -860,10 +840,10 @@ class _CartSummaryBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         border:
-            Border.all(color: Colors.white.withValues(alpha: 0.18)),
+            Border.all(color: Colors.white.withOpacity(0.18)),
       ),
       child: Row(
         children: [

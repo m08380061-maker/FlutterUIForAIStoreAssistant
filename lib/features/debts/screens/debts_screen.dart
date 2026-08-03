@@ -705,7 +705,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                                         horizontal: 12, vertical: 4),
                                 leading: CircleAvatar(
                                   backgroundColor: AppColors.primary
-                                      .withValues(alpha: 0.1),
+                                      .withOpacity(0.1),
                                   child: Text(
                                     c.initials,
                                     style: textTheme.labelMedium
@@ -765,7 +765,7 @@ class _DebtTile extends StatelessWidget {
                 radius: 20,
                 backgroundColor:
                     (isPaid ? AppColors.success : AppColors.error)
-                        .withValues(alpha: 0.12),
+                        .withOpacity(0.12),
                 child: Text(
                   debt.customerName.isNotEmpty
                       ? debt.customerName.substring(0, 1).toUpperCase()
@@ -790,7 +790,7 @@ class _DebtTile extends StatelessWidget {
                           Icon(Icons.link_rounded,
                               size: 11,
                               color:
-                                  AppColors.primary.withValues(alpha: 0.7)),
+                                  AppColors.primary.withOpacity(0.7)),
                           const SizedBox(width: 2),
                           Text(
                             tr.linkedToCustomer,
@@ -811,7 +811,7 @@ class _DebtTile extends StatelessWidget {
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: (isPaid ? AppColors.success : AppColors.error)
-                          .withValues(alpha: 0.1),
+                          .withOpacity(0.1),
                       borderRadius:
                           BorderRadius.circular(AppConstants.radiusFull),
                     ),
@@ -858,7 +858,7 @@ class _DebtTile extends StatelessWidget {
               value: debt.originalAmount > 0
                   ? (debt.totalPaid / debt.originalAmount).clamp(0, 1)
                   : 0,
-              backgroundColor: AppColors.error.withValues(alpha: 0.12),
+              backgroundColor: AppColors.error.withOpacity(0.12),
               valueColor: const AlwaysStoppedAnimation(AppColors.success),
               borderRadius: BorderRadius.circular(AppConstants.radiusFull),
             ),
@@ -906,7 +906,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: (color ?? AppColors.primary).withValues(alpha: 0.08),
+          color: (color ?? AppColors.primary).withOpacity(0.08),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 16, color: color ?? AppColors.primary),

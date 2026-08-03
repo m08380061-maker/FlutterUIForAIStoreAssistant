@@ -151,7 +151,7 @@ class _PromotionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.accentOrange.withValues(alpha: 0.12),
+              color: AppColors.accentOrange.withOpacity(0.12),
               borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             ),
             child: Text(

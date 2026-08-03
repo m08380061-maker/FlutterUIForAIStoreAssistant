@@ -492,7 +492,7 @@ class _SaleTile extends StatelessWidget {
             width: AppConstants.thumbnailSize,
             height: AppConstants.thumbnailSize,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius:
                   BorderRadius.circular(AppConstants.radiusSmall),
             ),
@@ -550,7 +550,7 @@ class _PaymentBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: AppColors.primary.withOpacity(0.08),
         borderRadius:
             BorderRadius.circular(AppConstants.radiusFull),
       ),
@@ -593,7 +593,7 @@ class _ProductChip extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.shopping_bag_outlined,

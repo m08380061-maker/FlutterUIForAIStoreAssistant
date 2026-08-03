@@ -388,9 +388,9 @@ class _QuickAction extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
+            border: Border.all(color: color.withOpacity(0.2)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -426,7 +426,7 @@ class _AiRecommendationCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.accentOrange.withValues(alpha: 0.12),
+              color: AppColors.accentOrange.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.psychology_rounded, color: AppColors.accentOrange, size: 18),
@@ -463,7 +463,7 @@ class _TransactionTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.receipt_rounded, color: AppColors.primary, size: 20),

@@ -232,7 +232,7 @@ class _ChatHeader extends StatelessWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: AppColors.accentOrange.withValues(alpha: 0.12),
+                color: AppColors.accentOrange.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.psychology_rounded,
@@ -264,11 +264,11 @@ class _ChatHeader extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
-                color: _roleColor.withValues(alpha: 0.1),
+                color: _roleColor.withOpacity(0.1),
                 borderRadius:
                     BorderRadius.circular(AppConstants.radiusFull),
                 border:
-                    Border.all(color: _roleColor.withValues(alpha: 0.2)),
+                    Border.all(color: _roleColor.withOpacity(0.2)),
               ),
               child: Text(
                 _roleLabel(tr),
@@ -318,7 +318,7 @@ class _WelcomePane extends StatelessWidget {
             width: 68,
             height: 68,
             decoration: BoxDecoration(
-              color: AppColors.accentOrange.withValues(alpha: 0.1),
+              color: AppColors.accentOrange.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.psychology_rounded,
@@ -423,10 +423,10 @@ class _CapCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.06),
+          color: color.withOpacity(0.06),
           borderRadius:
               BorderRadius.circular(AppConstants.radiusMedium),
-          border: Border.all(color: color.withValues(alpha: 0.14)),
+          border: Border.all(color: color.withOpacity(0.14)),
         ),
         child: Row(
           children: [
@@ -468,7 +468,7 @@ class _SuggestionChip extends StatelessWidget {
             color: Theme.of(context)
                 .colorScheme
                 .outline
-                .withValues(alpha: 0.25),
+                .withOpacity(0.25),
           ),
           borderRadius:
               BorderRadius.circular(AppConstants.radiusMedium),
@@ -518,7 +518,7 @@ class _MessageBubble extends StatelessWidget {
               height: 28,
               margin: const EdgeInsets.only(right: 8, top: 2),
               decoration: BoxDecoration(
-                color: AppColors.accentOrange.withValues(alpha: 0.12),
+                color: AppColors.accentOrange.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.psychology_rounded,
@@ -572,7 +572,7 @@ class _TypingIndicator extends StatelessWidget {
             height: 28,
             margin: const EdgeInsets.only(right: 8, top: 2),
             decoration: BoxDecoration(
-              color: AppColors.accentOrange.withValues(alpha: 0.12),
+              color: AppColors.accentOrange.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.psychology_rounded,
@@ -644,7 +644,7 @@ class _AnimatedDotState extends State<_AnimatedDot>
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           color: AppColors.primary
-              .withValues(alpha: 0.4 + _anim.value * 0.6),
+              .withOpacity(0.4 + _anim.value * 0.6),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -683,7 +683,7 @@ class _InputBar extends StatelessWidget {
             color: Theme.of(context)
                 .colorScheme
                 .outline
-                .withValues(alpha: 0.15),
+                .withOpacity(0.15),
           ),
         ),
       ),
@@ -692,7 +692,7 @@ class _InputBar extends StatelessWidget {
           // + button (merchant/worker only)
           if (isMerchantOrWorker) ...[
             Material(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
@@ -718,7 +718,7 @@ class _InputBar extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .outline
-                      .withValues(alpha: 0.3),
+                      .withOpacity(0.3),
                 ),
               ),
               child: TextField(
@@ -794,7 +794,7 @@ class _MicButton extends StatelessWidget {
           color: Theme.of(context)
               .colorScheme
               .outline
-              .withValues(alpha: 0.4),
+              .withOpacity(0.4),
         ),
         shape: BoxShape.circle,
       ),
@@ -843,7 +843,7 @@ class _QuickActionsSheet extends StatelessWidget {
               color: Theme.of(context)
                   .colorScheme
                   .outline
-                  .withValues(alpha: 0.3),
+                  .withOpacity(0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -860,7 +860,7 @@ class _QuickActionsSheet extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: item.color.withValues(alpha: 0.1),
+                    color: item.color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child:
@@ -969,7 +969,7 @@ class _AppDrawer extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  backgroundColor: Colors.white.withOpacity(0.2),
                   child: Text(
                     (user?.fullName ?? 'U')
                         .substring(0, 1)
@@ -992,7 +992,7 @@ class _AppDrawer extends StatelessWidget {
                   Text(
                     user!.storeName!,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.white.withOpacity(0.7),
                         fontSize: 12),
                   ),
               ],
@@ -1032,7 +1032,7 @@ class _AppDrawer extends StatelessWidget {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.chat_rounded,
@@ -1044,7 +1044,7 @@ class _AppDrawer extends StatelessWidget {
                 style: const TextStyle(fontSize: 11)),
             selected: true,
             selectedTileColor:
-                AppColors.primary.withValues(alpha: 0.05),
+                AppColors.primary.withOpacity(0.05),
           ),
 
           const Divider(height: 1),

@@ -207,7 +207,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .outline
-                            .withValues(alpha: 0.2),
+                            .withOpacity(0.2),
                       ),
                     ),
                   ),
@@ -347,7 +347,7 @@ class _ItemTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.shopping_bag_outlined,
@@ -386,7 +386,7 @@ class _ItemTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -481,7 +481,7 @@ class _SecondaryBtn extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600)),
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: color.withValues(alpha: 0.4)),
+        side: BorderSide(color: color.withOpacity(0.4)),
         padding: const EdgeInsets.symmetric(
             horizontal: 10, vertical: 10),
         shape: RoundedRectangleBorder(
@@ -527,7 +527,7 @@ class _ElectronicPaymentSheet extends StatelessWidget {
               color: Theme.of(context)
                   .colorScheme
                   .outline
-                  .withValues(alpha: 0.3),
+                  .withOpacity(0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -552,7 +552,7 @@ class _ElectronicPaymentSheet extends StatelessWidget {
             height: 180,
             decoration: BoxDecoration(
               border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   width: 2),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -561,12 +561,12 @@ class _ElectronicPaymentSheet extends StatelessWidget {
               children: [
                 Icon(Icons.qr_code_2_rounded,
                     size: 80,
-                    color: AppColors.primary.withValues(alpha: 0.6)),
+                    color: AppColors.primary.withOpacity(0.6)),
                 const SizedBox(height: 8),
                 Text(
                   'QR Code',
                   style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.primary.withValues(alpha: 0.6)),
+                      color: AppColors.primary.withOpacity(0.6)),
                 ),
                 Text(
                   '— ${tr.paymentQRHint} —',

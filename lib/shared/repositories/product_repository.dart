@@ -46,7 +46,6 @@ class ProductRepository {
     String? barcode,
     String? description,
     String? branchId,
-    String? imageUrl,
   }) async {
     _validateProduct(
       name: name,
@@ -78,7 +77,6 @@ class ProductRepository {
         barcode: Value(barcode?.trim()),
         description: Value(description?.trim()),
         branchId: Value(branchId?.trim()),
-        imageUrl: Value(imageUrl?.trim()),
         createdAt: Value(now),
         updatedAt: Value(now),
       );

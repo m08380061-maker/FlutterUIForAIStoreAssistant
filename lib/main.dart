@@ -27,7 +27,6 @@ void main() async {
 
   await StorageService.instance.initialize();
   await AuthService.instance.initialize();
-  await AppDatabase.instance.ensureSeeded();
 
   runApp(const AiStoreAssistantApp());
 }

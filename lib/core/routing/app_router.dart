@@ -18,6 +18,12 @@ import '../../features/analytics/screens/analytics_screen.dart';
 import '../../features/branches/screens/branches_screen.dart';
 import '../../features/marketing/screens/marketing_screen.dart';
 import '../../features/ai_assistant/screens/ai_chat_screen.dart';
+import '../../features/enrollment/screens/enrollment_hub_screen.dart';
+import '../../features/enrollment/screens/barcode_enrollment_screen.dart';
+import '../../features/enrollment/screens/photo_enrollment_screen.dart';
+import '../../features/enrollment/screens/invoice_enrollment_screen.dart';
+import '../../features/enrollment/screens/manual_enrollment_screen.dart';
+import '../../features/enrollment/screens/draft_review_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../i18n/app_translations.dart';
 
@@ -82,6 +88,32 @@ class AppRouter {
       GoRoute(
         path: '/scanner',
         builder: (context, state) => const ScannerScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment',
+        builder: (context, state) => const EnrollmentHubScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment/barcode',
+        builder: (context, state) => const BarcodeEnrollmentScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment/photo',
+        builder: (context, state) => const PhotoEnrollmentScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment/invoice',
+        builder: (context, state) => const InvoiceEnrollmentScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment/manual',
+        builder: (context, state) => const ManualEnrollmentScreen(),
+      ),
+      GoRoute(
+        path: '/enrollment/draft/:draftId',
+        builder: (context, state) => DraftReviewScreen(
+          draftId: state.pathParameters['draftId']!,
+        ),
       ),
       GoRoute(
         path: '/scanner/live',

@@ -57,7 +57,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // KPI cards — driven by daily revenue/profit stream
+            // KPI cards
             StreamBuilder<List<DailyRevenueProfit>>(
               stream: _saleRepository.watchDailyRevenueProfit(days: _periodDays),
               builder: (context, snapshot) {
@@ -75,35 +75,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    StatCard(
-                      label: context.tr.revenue,
-                      value: context.tr.formatCurrency(totalRevenue),
-                      icon: Icons.payments_rounded,
-                      color: AppColors.primary,
-                      change: null,
-                    ),
-                    StatCard(
-                      label: context.tr.profit,
-                      value: context.tr.formatCurrency(totalProfit),
-                      icon: Icons.trending_up_rounded,
-                      color: AppColors.accent,
-                      change: null,
-                    ),
-                    StatCard(
-                      label: context.tr.expenses,
-                      value: context.tr.formatCurrency(totalExpenses),
-                      icon: Icons.receipt_rounded,
-                      color: AppColors.error,
-                      change: null,
-                      isPositiveChange: false,
-                    ),
-                    StatCard(
-                      label: context.tr.transactions,
-                      value: '$transactionCount',
-                      icon: Icons.swap_horiz_rounded,
-                      color: const Color(0xFF7C3AED),
-                      change: null,
-                    ),
+                    StatCard(label: context.tr.revenue, value: context.tr.formatCurrency(totalRevenue), icon: Icons.payments_rounded, color: AppColors.primary, change: null),
+                    StatCard(label: context.tr.profit, value: context.tr.formatCurrency(totalProfit), icon: Icons.trending_up_rounded, color: AppColors.accent, change: null),
+                    StatCard(label: context.tr.expenses, value: context.tr.formatCurrency(totalExpenses), icon: Icons.receipt_rounded, color: AppColors.error, change: null, isPositiveChange: false),
+                    StatCard(label: context.tr.transactions, value: '$transactionCount', icon: Icons.swap_horiz_rounded, color: const Color(0xFF7C3AED), change: null),
                   ],
                 );
               },
@@ -165,10 +140,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             color: AppColors.primary,
                             barWidth: 2.5,
                             dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                            ),
+                            belowBarData: BarAreaData(show: true, color: AppColors.primary.withValues(alpha: 0.08)),
                           ),
                           LineChartBarData(
                             spots: profitSpots,
@@ -176,10 +148,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             color: AppColors.accent,
                             barWidth: 2.5,
                             dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: AppColors.accent.withValues(alpha: 0.08),
-                            ),
+                            belowBarData: BarAreaData(show: true, color: AppColors.accent.withValues(alpha: 0.08)),
                           ),
                         ],
                       ),
@@ -200,9 +169,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 if (data.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text(context.tr.noSalesDataPeriod, style: textTheme.bodySmall),
-                    ),
+                    child: Center(child: Text(context.tr.noSalesDataPeriod, style: textTheme.bodySmall)),
                   );
                 }
                 return Column(
@@ -225,9 +192,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 if (data.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text(context.tr.noCategoryData, style: textTheme.bodySmall),
-                    ),
+                    child: Center(child: Text(context.tr.noCategoryData, style: textTheme.bodySmall)),
                   );
                 }
                 return AppCard(
@@ -261,14 +226,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.chartColors[e.key % AppColors.chartColors.length],
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
+                                Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.chartColors[e.key % AppColors.chartColors.length], shape: BoxShape.circle)),
                                 const SizedBox(width: 6),
                                 Expanded(child: Text(e.value.category, style: textTheme.bodySmall)),
                                 Text('${e.value.percentage.toStringAsFixed(0)}%', style: textTheme.labelSmall),
@@ -317,10 +275,7 @@ class _BestSellerRow extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                '#$rank',
-                style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
-              ),
+              child: Text('#$rank', style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
             ),
           ),
           const SizedBox(width: 12),

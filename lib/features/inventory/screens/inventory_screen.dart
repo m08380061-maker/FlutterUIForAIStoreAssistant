@@ -296,7 +296,7 @@ class _InventoryScreenState extends State<InventoryScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/scanner'),
+        onPressed: () => context.push('/enrollment'),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(tr.addProduct, style: const TextStyle(color: Colors.white)),
@@ -379,7 +379,7 @@ class _ProductRow extends StatelessWidget {
             width: AppConstants.thumbnailSize,
             height: AppConstants.thumbnailSize,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
             ),
             child: const Icon(Icons.inventory_2_outlined,
@@ -446,7 +446,7 @@ class _InfoBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppConstants.radiusFull),
       ),
       child: Text(
@@ -473,7 +473,7 @@ class _IconBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: (color ?? AppColors.primary).withValues(alpha: 0.08),
+          color: (color ?? AppColors.primary).withOpacity(0.08),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 16, color: color ?? AppColors.primary),
