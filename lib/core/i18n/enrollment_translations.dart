@@ -1,7 +1,10 @@
 /// Enrollment-specific translation keys.
 library;
 
+import 'package:flutter/material.dart';
+
 import 'app_translations.dart';
+import '../../shared/services/storage_service.dart';
 
 /// Provides enrollment-specific translations.
 /// Usage: `EnrollmentTranslations.of(context).enrollByBarcode`
@@ -11,8 +14,8 @@ class EnrollmentTranslations {
   EnrollmentTranslations._(this._lang);
 
   static EnrollmentTranslations of(BuildContext context) {
-    final tr = AppTranslations.of(context);
-    return EnrollmentTranslations._(tr.langCode);
+    final lang = LocaleProvider.instance.locale.languageCode;
+    return EnrollmentTranslations._(lang);
   }
 
   String _s(String key) {
